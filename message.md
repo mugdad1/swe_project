@@ -79,7 +79,7 @@ This comprehensive structure is intended to enhance overall efficiency, customer
 
 tasks
 
-- move user req up
+- move user req up(done)
 - system arch
 - system req specification
 - process model and usecase diagram
