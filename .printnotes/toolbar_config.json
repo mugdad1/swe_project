@@ -1,0 +1,80 @@
+{
+  "toolbarConfig": [
+    {
+      "key": "toolbar_view_item",
+      "visible": true
+    },
+    {
+      "key": "toolbar_undo_redo_actions",
+      "visible": true
+    },
+    {
+      "key": "toolbar_selection_action",
+      "visible": true
+    },
+    {
+      "key": "toolbar_bold_action",
+      "visible": true
+    },
+    {
+      "key": "toolbar_italic_action",
+      "visible": true
+    },
+    {
+      "key": "toolbar_highlight_action",
+      "visible": true
+    },
+    {
+      "key": "toolbar_strikethrough_action",
+      "visible": true
+    },
+    {
+      "key": "toolbar_heading_action",
+      "visible": true
+    },
+    {
+      "key": "toolbar_indent_action",
+      "visible": true
+    },
+    {
+      "key": "toolbar_unindent_action",
+      "visible": true
+    },
+    {
+      "key": "toolbar_unordered_list_action",
+      "visible": true
+    },
+    {
+      "key": "toolbar_checkbox_list_action",
+      "visible": true
+    },
+    {
+      "key": "toolbar_underline_action",
+      "visible": true
+    },
+    {
+      "key": "toolbar_insert_table",
+      "visible": true
+    },
+    {
+      "key": "toolbar_link_action",
+      "visible": true
+    },
+    {
+      "key": "toolbar_image_action",
+      "visible": true
+    },
+    {
+      "key": "toolbar_blockquote_action",
+      "visible": true
+    },
+    {
+      "key": "toolbar_code_action",
+      "visible": true
+    },
+    {
+      "key": "toolbar_line_action",
+      "visible": true
+    }
+  ]
+}
