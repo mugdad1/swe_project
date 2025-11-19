@@ -95,13 +95,10 @@ def customer_actions(customer):
                 print("Invalid date format. Please use YYYY-MM-DD.")
                 continue
             time = input("Time (HH:MM): ")
-<<<<<<< HEAD
-            # You can also validate time but for simplicity we skip it
-=======
+          # You can also validate time but for simplicity we skip it
             if not is_valid_time(time):
                 print("Invalid time format. Please use HH:MM.")
                 continue
->>>>>>> f777f92 (jj)
             job = ServiceJob(customer, date, time)
             jobs.append(job)
             customer.jobs.append(job)
