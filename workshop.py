@@ -67,8 +67,6 @@ def is_valid_date(date_str):
     except ValueError:
         return False
 
-<<<<<<< HEAD
-=======
 def is_valid_time(time_str):
     """Check if the time string is valid format HH:MM."""
     try:
@@ -77,7 +75,6 @@ def is_valid_time(time_str):
     except ValueError:
         return False
 
->>>>>>> f777f92 (jj)
 def register_customer():
     username = input("Choose customer username: ")
     if find_user(username):
