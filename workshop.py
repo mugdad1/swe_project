@@ -67,6 +67,17 @@ def is_valid_date(date_str):
     except ValueError:
         return False
 
+<<<<<<< HEAD
+=======
+def is_valid_time(time_str):
+    """Check if the time string is valid format HH:MM."""
+    try:
+        datetime.strptime(time_str, "%H:%M")
+        return True
+    except ValueError:
+        return False
+
+>>>>>>> f777f92 (jj)
 def register_customer():
     username = input("Choose customer username: ")
     if find_user(username):
@@ -87,7 +98,13 @@ def customer_actions(customer):
                 print("Invalid date format. Please use YYYY-MM-DD.")
                 continue
             time = input("Time (HH:MM): ")
+<<<<<<< HEAD
             # You can also validate time but for simplicity we skip it
+=======
+            if not is_valid_time(time):
+                print("Invalid time format. Please use HH:MM.")
+                continue
+>>>>>>> f777f92 (jj)
             job = ServiceJob(customer, date, time)
             jobs.append(job)
             customer.jobs.append(job)
@@ -119,8 +136,11 @@ def mechanic_actions(mechanic):
             if 0 <= sel < len(mechanic.assigned_jobs):
                 job = mechanic.assigned_jobs[sel]
                 status = input("New status (Pending / In Progress / Completed): ")
-                comments = input("Comments: ")
+                if status not in ["Pending", "In Progress", "Completed"]:
+                    print("Invalid status. Please use Pending, In Progress, or Completed.")
+                    continue
                 job.status = status
+                comments = input("Comments: ")
                 job.comments = comments
                 print("Job updated:", job.summary())
             else:
@@ -138,33 +158,64 @@ def admin_actions(admin):
             if not jobs:
                 print("No jobs to assign")
                 continue
+            print("\nJobs:")
             for i, j in enumerate(jobs):
-                print(f"{i + 1}. {j.summary()}")
-            sel = int(input("Select job number: ")) - 1
-            if 0 <= sel < len(jobs):
-                job = jobs[sel]
-                mechanics = [u for u in users if u.role == "mechanic"]
-                for mi, m in enumerate(mechanics):
-                    print(f"{mi + 1}. {m.username}")
+                assigned = j.mechanic.username if j.mechanic else "Unassigned"
+                print(f"{i + 1}. {j.summary()} (Assigned to: {assigned})")
+
+            try:
+                sel = int(input("Select job number to assign: ")) - 1
+                if not (0 <= sel < len(jobs)):
+                    print("Invalid job number")
+                    continue
+            except ValueError:
+                print("Invalid input, please enter a number")
+                continue
+
+            job = jobs[sel]
+
+            mechanics = [u for u in users if u.role == "mechanic"]
+            if not mechanics:
+                print("No mechanics available")
+                continue
+
+            print("\nMechanics:")
+            for mi, m in enumerate(mechanics):
+                print(f"{mi + 1}. {m.username}")
+
+            try:
                 ms = int(input("Select mechanic number: ")) - 1
-                if 0 <= ms < len(mechanics):
-                    mech = mechanics[ms]
-                    job.mechanic = mech
-                    mech.assigned_jobs.append(job)
-                    print("Assigned", job.summary())
-                else:
+                if not (0 <= ms < len(mechanics)):
                     print("Invalid mechanic number")
-            else:
-                print("Invalid job number")
+                    continue
+            except ValueError:
+                print("Invalid input, please enter a number")
+                continue
+
+            mech = mechanics[ms]
+
+            # Assign mechanic to job
+            job.mechanic = mech
+            if job not in mech.assigned_jobs:
+                mech.assigned_jobs.append(job)
+
+            print("Assigned job:", job.summary())
+
         elif choice == "2":
-            print("=== Report ===")
+            print("\n=== All Jobs Report ===")
             for j in jobs:
                 print(" -", j.summary())
+
+            for mech in [u for u in users if u.role == "mechanic"]:
+                print(f"\nMechanic: {mech.username} - Assigned Jobs")
+                if not mech.assigned_jobs:
+                    print(" - No jobs assigned")
+                for j in mech.assigned_jobs:
+                    print("   -", j.summary())
         elif choice == "3":
             break
         else:
             print("Invalid choice")
-
 def main():
     while True:
         print("\nMain Menu: 1-Register Customer, 2-Login Customer, 3-Login Mechanic, 4-Login Admin, 5-Exit")
