@@ -1,5 +1,4 @@
-
-# workshop_system.py
+from datetime import datetime
 
 class User:
     def __init__(self, username, password, role):
@@ -10,7 +9,7 @@ class User:
 class Customer(User):
     def __init__(self, username, password):
         super().__init__(username, password, "customer")
-        self.jobs = []  # list of ServiceJob
+        self.jobs = []
 
 class Mechanic(User):
     def __init__(self, username, password):
@@ -32,13 +31,15 @@ class ServiceJob:
 
     def summary(self):
         mech_name = self.mechanic.username if self.mechanic else "None"
-        return f"Customer: {self.customer.username}, Date: {self.date}, Time: {self.time}, Status: {self.status}, Mechanic: {mech_name}, Comments: {self.comments}"
+        return (f"Customer: {self.customer.username}, Date: {self.date}, "
+                f"Time: {self.time}, Status: {self.status}, Mechanic: {mech_name}, "
+                f"Comments: {self.comments}")
 
 # In-memory storage
 users = []
 jobs = []
 
-# Create default admin and a mechanic
+# Create default admin and mechanic
 users.append(Admin("admin", "admin"))
 users.append(Mechanic("mech1", "mech1"))
 
@@ -58,6 +59,14 @@ def login(role):
     print("Login failed")
     return None
 
+def is_valid_date(date_str):
+    """Check if the date string is valid format YYYY-MM-DD."""
+    try:
+        datetime.strptime(date_str, "%Y-%m-%d")
+        return True
+    except ValueError:
+        return False
+
 def register_customer():
     username = input("Choose customer username: ")
     if find_user(username):
@@ -74,7 +83,11 @@ def customer_actions(customer):
         choice = input("Select: ")
         if choice == "1":
             date = input("Date (YYYY-MM-DD): ")
+            if not is_valid_date(date):
+                print("Invalid date format. Please use YYYY-MM-DD.")
+                continue
             time = input("Time (HH:MM): ")
+            # You can also validate time but for simplicity we skip it
             job = ServiceJob(customer, date, time)
             jobs.append(job)
             customer.jobs.append(job)
