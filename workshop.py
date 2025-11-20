@@ -84,31 +84,44 @@ def register_customer():
     customer = Customer(username, password)
     users.append(customer)
     print("Customer registered:", username)
-
 def customer_actions(customer):
+    # assume `jobs` is a global list that stores all ServiceJob objects
+    global jobs
+
     while True:
         print("\nCustomer Menu: 1-Book Service, 2-View My Jobs, 3-Logout")
-        choice = input("Select: ")
+        choice = input("Select: ").strip()
+
         if choice == "1":
-            date = input("Date (YYYY-MM-DD): ")
+            date = input("Date (YYYY-MM-DD): ").strip()
             if not is_valid_date(date):
                 print("Invalid date format. Please use YYYY-MM-DD.")
                 continue
-            time = input("Time (HH:MM): ")
-          # You can also validate time but for simplicity we skip it
+
+            time = input("Time (HH:MM): ").strip()
+            # ---- corrected indentation ----
             if not is_valid_time(time):
                 print("Invalid time format. Please use HH:MM.")
                 continue
+
+            # optional: prevent duplicate bookings
+            if any(j.date == date and j.time == time for j in customer.jobs):
+                print("You already have a booking at that date and time.")
+                continue
+
             job = ServiceJob(customer, date, time)
             jobs.append(job)
             customer.jobs.append(job)
             print("Service booked:", job.summary())
+
         elif choice == "2":
             print("My Jobs:")
             for j in customer.jobs:
                 print(" -", j.summary())
+
         elif choice == "3":
             break
+
         else:
             print("Invalid choice")
 
