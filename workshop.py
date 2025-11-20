@@ -251,6 +251,137 @@ def mechanic_actions(mechanic):
             break
         else:
             print("Invalid choice")
+
+def assign_job_logic():
+    """Assign an unassigned pending job to a mechanic."""
+    # Find jobs that are still pending and have no mechanic
+    pending_jobs = [j for j in jobs if j.status == "Pending" and j.mechanic is None]
+
+    if not pending_jobs:
+        print("No pending jobs to assign.")
+        return
+
+    # List pending jobs
+    print("\nPending Jobs:")
+    for idx, job in enumerate(pending_jobs, start=1):
+        print(f"{idx}. {job.summary()}")
+
+    # Choose a job
+    try:
+        job_idx = int(input("Select job number to assign: ")) - 1
+        job = pending_jobs[job_idx]
+    except (ValueError, IndexError):
+        print("Invalid selection.")
+        return
+
+    # List available mechanics
+    mechanics = [u for u in users if isinstance(u, Mechanic)]
+    if not mechanics:
+        print("No mechanics available.")
+        return
+
+    print("\nMechanics:")
+    for idx, mech in enumerate(mechanics, start=1):
+        print(f"{idx}. {mech.username}")
+
+    # Choose a mechanic
+    try:
+        mech_idx = int(input("Select mechanic number: ")) - 1
+        mechanic = mechanics[mech_idx]
+    except (ValueError, IndexError):
+        print("Invalid selection.")
+        return
+
+    # Perform assignment
+    job.mechanic = mechanic
+    mechanic.assigned_jobs.append(job)
+    print(f"Job assigned to {mechanic.username}:")
+    print(job.summary())
+
+def generate_report_logic():
+    """Print a quick status report for all service jobs."""
+    total = len(jobs)
+    pending   = sum(1 for j in jobs if j.status == "Pending")
+    in_prog   = sum(1 for j in jobs if j.status == "In Progress")
+    completed = sum(1 for j in jobs if j.status == "Completed")
+
+    print("\n--- Service Job Report ---")
+    print(f"Total jobs      : {total}")
+    print(f"Pending         : {pending}")
+    print(f"In Progress     : {in_prog}")
+    print(f"Completed       : {completed}")
+
+    # Jobs per mechanic
+    mechanics = [u for u in users if isinstance(u, Mechanic)]
+    if mechanics:
+        print("\nJobs assigned to mechanics:")
+        for mech in mechanics:
+            count = len(mech.assigned_jobs)
+            print(f"  {mech.username}: {count} job{'s' if count != 1 else ''}")
+    else:
+        print("\nNo mechanics in the system.")
+    print("---------------------------\n")
+
+def view_customer_detail():
+    """Display all registered customers and their jobs."""
+    customers = [u for u in users if isinstance(u, Customer)]
+
+    if not customers:
+        print("\nNo customers registered.\n")
+        return
+
+    print("\n--- Customer Records ---")
+    for cust in customers:
+        print(f"\nUsername : {cust.username}")
+        print(f"Role     : {cust.role}")
+        print(f"Jobs     : {len(cust.jobs)}")
+        if cust.jobs:
+            for idx, job in enumerate(cust.jobs, start=1):
+                print(f"  {idx}. {job.summary()}")
+    print("------------------------\n")
+
+
+def delete_customer():
+    """Remove a customer and all of their associated jobs."""
+    customers = [u for u in users if isinstance(u, Customer)]
+
+    if not customers:
+        print("\nNo customers to delete.\n")
+        return
+
+    # List customers with an index
+    print("\nCustomers:")
+    for idx, cust in enumerate(customers, start=1):
+        print(f"{idx}. {cust.username}")
+
+    try:
+        sel = int(input("Select customer number to delete: ")) - 1
+        customer = customers[sel]
+    except (ValueError, IndexError):
+        print("Invalid selection.")
+        return
+
+    confirm = input(
+        f"Are you sure you want to delete '{customer.username}' and all their jobs? (yes/no): "
+    ).strip().lower()
+    if confirm != "yes":
+        print("Deletion cancelled.")
+        return
+
+    # Remove the customer's jobs from the global job list
+    global jobs
+    jobs = [j for j in jobs if j.customer != customer]
+
+    # Also remove any of those jobs from mechanics' assigned lists
+    for mech in (u for u in users if isinstance(u, Mechanic)):
+        mech.assigned_jobs = [j for j in mech.assigned_jobs if j.customer != customer]
+
+    # Finally remove the customer object from the users list
+    users.remove(customer)
+
+    print(f"Customer '{customer.username}' and all related jobs have been deleted.\n")
+
+
 def admin_actions(admin: Admin):
     while True:
         print(
@@ -261,25 +392,18 @@ def admin_actions(admin: Admin):
         choice = input("Select: ").strip()
 
         if choice == "1":
-            # ---- existing assign‑job code (unchanged) ----
-            # ... (keep the block you already have)
-            assign_job_logic()          # placeholder – keep your current code here
-
+            assign_job_logic()          # <-- real implementation
         elif choice == "2":
-            # ---- existing report code (unchanged) ----
-            generate_report_logic()     # placeholder – keep your current code here
-
+            generate_report_logic()     # keep your existing code
         elif choice == "3":
             break
-
         elif choice == "4":
             view_customer_detail()
-
         elif choice == "5":
             delete_customer()
-
         else:
             print("Invalid choice")
+
 def main():
     while True:
         print("\nMain Menu: 1-Register Customer, 2-Login Customer, 3-Login Mechanic, 4-Login Admin, 5-Exit")
