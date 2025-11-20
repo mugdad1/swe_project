@@ -125,6 +125,101 @@ def customer_actions(customer):
         else:
             print("Invalid choice")
 
+# -------------------------------------------------
+# Customer account‑management helpers
+# -------------------------------------------------
+def view_account(customer: Customer):
+    """Display basic account information."""
+    print("\n--- Account Details ---")
+    print(f"Username : {customer.username}")
+    print(f"Role     : {customer.role}")
+    print("-----------------------\n")
+
+
+def change_password(customer: Customer):
+    """Allow the customer to change their password."""
+    current = input("Enter current password: ")
+    if current != customer.password:
+        print("Incorrect password – aborting.")
+        return
+
+    new_pw = input("Enter new password: ")
+    confirm = input("Confirm new password: ")
+    if new_pw != confirm:
+        print("Passwords do not match – aborting.")
+        return
+
+    if not new_pw:
+        print("Password cannot be empty.")
+        return
+
+    customer.password = new_pw
+    print("Password updated successfully.")
+
+
+# -------------------------------------------------
+# Updated customer menu – now includes account mgmt
+# -------------------------------------------------
+def customer_actions(customer: Customer):
+    global jobs
+
+    while True:
+        print(
+            "\nCustomer Menu: "
+            "1‑Book Service, 2‑View My Jobs, 3‑Logout, 4‑Manage Account"
+        )
+        choice = input("Select: ").strip()
+
+        if choice == "1":
+            # ---- booking (unchanged) ----
+            date = input("Date (YYYY‑MM‑DD): ").strip()
+            if not is_valid_date(date):
+                print("Invalid date format. Please use YYYY‑MM‑DD.")
+                continue
+
+            time = input("Time (HH:MM): ").strip()
+            if not is_valid_time(time):
+                print("Invalid time format. Please use HH:MM.")
+                continue
+
+            if any(j.date == date and j.time == time for j in customer.jobs):
+                print("You already have a booking at that date and time.")
+                continue
+
+            job = ServiceJob(customer, date, time)
+            jobs.append(job)
+            customer.jobs.append(job)
+            print("Service booked:", job.summary())
+
+        elif choice == "2":
+            # ---- view jobs (unchanged) ----
+            print("My Jobs:")
+            for j in customer.jobs:
+                print(" -", j.summary())
+
+        elif choice == "3":
+            break
+
+        elif choice == "4":
+            # ---- manage account ----
+            while True:
+                print(
+                    "\nAccount Menu: 1‑View Details, 2‑Change Password, 3‑Back"
+                )
+                sub = input("Select: ").strip()
+                if sub == "1":
+                    view_account(customer)
+                elif sub == "2":
+                    change_password(customer)
+                elif sub == "3":
+                    break
+                else:
+                    print("Invalid choice")
+        else:
+            print("Invalid choice")
+
+
+
 def mechanic_actions(mechanic):
     while True:
         print("\nMechanic Menu: 1-View My Jobs, 2-Update Job, 3-Logout")
