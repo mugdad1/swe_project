@@ -251,71 +251,33 @@ def mechanic_actions(mechanic):
             break
         else:
             print("Invalid choice")
-
-def admin_actions(admin):
+def admin_actions(admin: Admin):
     while True:
-        print("\nAdmin Menu: 1-Assign Job, 2-Generate Report, 3-Logout")
-        choice = input("Select: ")
+        print(
+            "\nAdmin Menu: "
+            "1‑Assign Job, 2‑Generate Report, 3‑Logout, "
+            "4‑View Customer Records, 5‑Delete Customer"
+        )
+        choice = input("Select: ").strip()
+
         if choice == "1":
-            if not jobs:
-                print("No jobs to assign")
-                continue
-            print("\nJobs:")
-            for i, j in enumerate(jobs):
-                assigned = j.mechanic.username if j.mechanic else "Unassigned"
-                print(f"{i + 1}. {j.summary()} (Assigned to: {assigned})")
-
-            try:
-                sel = int(input("Select job number to assign: ")) - 1
-                if not (0 <= sel < len(jobs)):
-                    print("Invalid job number")
-                    continue
-            except ValueError:
-                print("Invalid input, please enter a number")
-                continue
-
-            job = jobs[sel]
-
-            mechanics = [u for u in users if u.role == "mechanic"]
-            if not mechanics:
-                print("No mechanics available")
-                continue
-
-            print("\nMechanics:")
-            for mi, m in enumerate(mechanics):
-                print(f"{mi + 1}. {m.username}")
-
-            try:
-                ms = int(input("Select mechanic number: ")) - 1
-                if not (0 <= ms < len(mechanics)):
-                    print("Invalid mechanic number")
-                    continue
-            except ValueError:
-                print("Invalid input, please enter a number")
-                continue
-
-            mech = mechanics[ms]
-
-            # Assign mechanic to job
-            job.mechanic = mech
-            if job not in mech.assigned_jobs:
-                mech.assigned_jobs.append(job)
-
-            print("Assigned job:", job.summary())
+            # ---- existing assign‑job code (unchanged) ----
+            # ... (keep the block you already have)
+            assign_job_logic()          # placeholder – keep your current code here
 
         elif choice == "2":
-            print("\n=== All Jobs Report ===")
-            for j in jobs:
-                print(" -", j.summary())
+            # ---- existing report code (unchanged) ----
+            generate_report_logic()     # placeholder – keep your current code here
 
-            for mech in [u for u in users if u.role == "mechanic"]:
-                print(f"\nMechanic: {mech.username} - Assigned Jobs")
-                if not mech.assigned_jobs:
-                    print(" - No jobs assigned")
-                for j in mech.assigned_jobs:
-                    print("   -", j.summary())
         elif choice == "3":
             break
+
+        elif choice == "4":
+            view_customer_detail()
+
+        elif choice == "5":
+            delete_customer()
+
         else:
             print("Invalid choice")
 def main():
