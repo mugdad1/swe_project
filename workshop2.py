@@ -1,12 +1,34 @@
-# service_center.py
 from datetime import datetime
 import getpass
+import sys  # Import sys to check for interactive environment
+
+
+# --- Helper to manage input in non-interactive environments (like PyCharm run console) ---
+def secure_input(prompt):
+    """Uses getpass if environment supports it, otherwise falls back to input."""
+    # Check if stdin is a TTY (interactive terminal)
+    if sys.stdin.isatty():
+        try:
+            return getpass.getpass(prompt)
+        except Exception:
+            # Fallback if getpass fails (e.g., in some IDE consoles)
+            print(f"Warning: Falling back to standard input for password.")
+            return input(prompt)
+    else:
+        # If not a TTY (common in PyCharm run), use standard input
+        return input(prompt)
+
+
+# --------------------------------------------------------------------------------------
+
 
 # -------------------------------------------------
 # User classes
 # -------------------------------------------------
 class User:
     def __init__(self, username, password, role):
+        # We assume validation has been performed by the caller (e.g., register_customer)
+        # to ensure username is not empty.
         self.username = username
         self.password = password
         self.role = role
@@ -29,7 +51,9 @@ class Admin(User):
         super().__init__(username, password, "admin")
 
 
-
+# -------------------------------------------------
+# Service job model
+# -------------------------------------------------
 class ServiceJob:
     def __init__(self, customer, date, time):
         self.customer = customer
@@ -49,7 +73,7 @@ class ServiceJob:
 
 
 # -------------------------------------------------
-# In‑memory storage
+# In-memory storage
 # -------------------------------------------------
 users = []
 jobs = []
@@ -57,6 +81,7 @@ jobs = []
 # default admin & mechanic
 users.append(Admin("admin", "admin"))
 users.append(Mechanic("mech1", "mech1"))
+users.append(Mechanic("mech2", "mech2"))
 
 
 def find_user(username):
@@ -67,8 +92,9 @@ def find_user(username):
 
 
 def login(role):
+    # Note: Login uses the un-stripped input for consistency with stored usernames
     username = input("Username: ")
-    password = getpass.getpass("Password: ")
+    password = secure_input("Password: ")  # Using secure_input
     user = find_user(username)
 
     if not user:
@@ -89,7 +115,7 @@ def login(role):
 # Validation helpers
 # -------------------------------------------------
 def is_valid_date(date_str):
-    """YYYY‑MM‑DD"""
+    """YYYY-MM-DD"""
     try:
         datetime.strptime(date_str, "%Y-%m-%d")
         return True
@@ -98,7 +124,7 @@ def is_valid_date(date_str):
 
 
 def is_valid_time(time_str):
-    """HH:MM  (00‑23 for hour)"""
+    """HH:MM (00-23 for hour)"""
     try:
         dt = datetime.strptime(time_str, "%H:%M")
         return dt.hour < 24
@@ -117,13 +143,13 @@ def view_account(customer: Customer):
 
 
 def change_password(customer: Customer):
-    current = getpass.getpass("Enter current password: ")
+    current = secure_input("Enter current password: ")  # Using secure_input
     if current != customer.password:
         print("Incorrect password – aborting.")
         return
 
-    new_pw = getpass.getpass("Enter new password: ")
-    confirm = getpass.getpass("Confirm new password: ")
+    new_pw = secure_input("Enter new password: ")  # Using secure_input
+    confirm = secure_input("Confirm new password: ")  # Using secure_input
     if new_pw != confirm:
         print("Passwords do not match – aborting.")
         return
@@ -136,29 +162,25 @@ def change_password(customer: Customer):
 
 
 def register_customer():
-    username = input("Choose customer username: ").strip()
-    
-    # Check if empty
+    username = input("Choose customer username: ").strip()  # <-- Stripped for validation
+
+    # NEW: Check if username is empty after stripping
     if not username:
-        print("Username cannot be empty.")
+        print("Username cannot be empty or only whitespace.")
         return
-    
-    # Check if username exists
+
     if find_user(username):
         print("Username already exists")
         return
-    
-    password = getpass.getpass("Choose password: ").strip()
-    
-    # Check if password empty
-    if not password:
+
+    password = secure_input("Choose password: ")  # Using secure_input
+    if not password.strip():
         print("Password cannot be empty.")
         return
-    
+
     customer = Customer(username, password)
     users.append(customer)
     print("Customer registered:", username)
-
 
 
 # -------------------------------------------------
@@ -169,14 +191,14 @@ def customer_actions(customer: Customer):
     while True:
         print(
             "\nCustomer Menu: "
-            "1‑Book Service, 2‑View My Jobs, 3‑Logout, 4‑Manage Account"
+            "1-Book Service, 2-View My Jobs, 3-Logout, 4-Manage Account"
         )
         choice = input("Select: ").strip()
 
         if choice == "1":
-            date = input("Date (YYYY‑MM‑DD): ").strip()
+            date = input("Date (YYYY-MM-DD): ").strip()
             if not is_valid_date(date):
-                print("Invalid date format. Please use YYYY‑MM‑DD.")
+                print("Invalid date format. Please use YYYY-MM-DD.")
                 continue
 
             time = input("Time (HH:MM): ").strip()
@@ -204,7 +226,7 @@ def customer_actions(customer: Customer):
         elif choice == "4":
             while True:
                 print(
-                    "\nAccount Menu: 1‑View Details, 2‑Change Password, 3‑Back"
+                    "\nAccount Menu: 1-View Details, 2-Change Password, 3-Back"
                 )
                 sub = input("Select: ").strip()
                 if sub == "1":
@@ -224,7 +246,7 @@ def customer_actions(customer: Customer):
 # -------------------------------------------------
 def mechanic_actions(mechanic: Mechanic):
     while True:
-        print("\nMechanic Menu: 1‑View My Jobs, 2‑Update Job, 3‑Logout")
+        print("\nMechanic Menu: 1-View My Jobs, 2-Update Job, 3-Logout")
         choice = input("Select: ").strip()
         if choice == "1":
             print("Assigned Jobs:")
@@ -262,7 +284,7 @@ def mechanic_actions(mechanic: Mechanic):
 # Admin helpers
 # -------------------------------------------------
 def assign_job_logic():
-    """Assign a pending, un‑assigned job to a mechanic."""
+    """Assign a pending, un-assigned job to a mechanic."""
     pending_jobs = [j for j in jobs if j.status == "Pending" and j.mechanic is None]
     if not pending_jobs:
         print("No pending jobs to assign.")
@@ -295,10 +317,27 @@ def assign_job_logic():
         print("Please enter a valid mechanic number.")
         return
 
+    # --- NEW CONFLICT CHECK: Prevent double-booking mechanic on the same date/time ---
+    job_date = job.date
+    job_time = job.time
+
+    # Check if the selected mechanic is already booked for this specific date and time
+    conflict_found = False
+    for assigned_job in mechanic.assigned_jobs:
+        if assigned_job.date == job_date and assigned_job.time == job_time:
+            conflict_found = True
+            break
+
+    if conflict_found:
+        print(f"\nASSIGNMENT FAILED: {mechanic.username} is already booked on {job_date} at {job_time}.")
+        print("Please select a different mechanic or a different job.")
+        return
+    # --------------------------------------------------------------------------------
+
     # perform assignment
     job.mechanic = mechanic
     mechanic.assigned_jobs.append(job)
-    job.status = "In Progress"          # prevents double‑assignment
+    job.status = "In Progress"  # prevents double-assignment by removing from 'Pending' criteria on next run
     print(f"Job assigned to {mechanic.username}:")
     print(job.summary())
 
@@ -368,7 +407,7 @@ def delete_customer():
         print("Deletion cancelled.")
         return
 
-    # Remove the customer's jobs from the global list (in‑place)
+    # Remove the customer's jobs from the global list (in-place)
     global jobs
     jobs[:] = [j for j in jobs if j.customer != customer]
 
@@ -386,8 +425,8 @@ def admin_actions(admin: Admin):
     while True:
         print(
             "\nAdmin Menu: "
-            "1‑Assign Job, 2‑Generate Report, 3‑Logout, "
-            "4‑View Customer Records, 5‑Delete Customer"
+            "1-Assign Job, 2-Generate Report, 3-Logout, "
+            "4-View Customer Records, 5-Delete Customer"
         )
         choice = input("Select: ").strip()
 
@@ -411,8 +450,8 @@ def admin_actions(admin: Admin):
 def main():
     while True:
         print(
-            "\nMain Menu: 1‑Register Customer, 2‑Login Customer, "
-            "3‑Login Mechanic, 4‑Login Admin, 5‑Exit"
+            "\nMain Menu: 1-Register Customer, 2-Login Customer, "
+            "3-Login Mechanic, 4-Login Admin, 5-Exit"
         )
         choice = input("Select: ").strip()
         if choice == "1":
