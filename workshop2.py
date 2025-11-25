@@ -186,13 +186,35 @@ def register_customer():
 # -------------------------------------------------
 # Customer menu (includes account management)
 # -------------------------------------------------
-def customer_actions(customer: Customer):
+def delete_own_account(current_user):
+    """Allow user to delete their own account."""
+    # Confirm password before deletion
+    password = secure_input("Enter your password to confirm account deletion: ")
+    
+    if password != current_user.password:
+        print("Incorrect password. Account deletion cancelled.")
+        return False
+    
+    # Confirm deletion
+    confirm = input("Are you sure you want to delete your account? (yes/no): ").strip().lower()
+    if confirm != "yes":
+        print("Account deletion cancelled.")
+        return False
+    
+    # Remove user's jobs
     global jobs
+    jobs = [job for job in jobs if job.customer != current_user]
+    
+    # Remove user from users list
+    users.remove(current_user)
+    
+    print("Your account has been successfully deleted.")
+    return True
+
+# Modify customer_actions to include account deletion
+def customer_actions(customer: Customer):
     while True:
-        print(
-            "\nCustomer Menu: "
-            "1-Book Service, 2-View My Jobs, 3-Logout, 4-Manage Account"
-        )
+        print("\nCustomer Menu: 1-Book Service, 2-My Jobs, 3-Manage Account, 4-Logout")
         choice = input("Select: ").strip()
 
         if choice == "1":
@@ -221,24 +243,28 @@ def customer_actions(customer: Customer):
                 print(" -", j.summary())
 
         elif choice == "3":
-            break
-
-        elif choice == "4":
             while True:
-                print(
-                    "\nAccount Menu: 1-View Details, 2-Change Password, 3-Back"
-                )
+                print("\nAccount Menu: 1-View Details, 2-Change Password, 3-Delete Account, 4-Back")
                 sub = input("Select: ").strip()
+                
                 if sub == "1":
                     view_account(customer)
                 elif sub == "2":
                     change_password(customer)
                 elif sub == "3":
+                    # Account deletion
+                    if delete_own_account(customer):
+                        return  # Exit to main menu after account deletion
+                elif sub == "4":
                     break
                 else:
                     print("Invalid choice")
+
+        elif choice == "4":
+            break
         else:
             print("Invalid choice")
+
 
 
 # -------------------------------------------------
@@ -419,20 +445,94 @@ def delete_customer():
     users.remove(customer)
 
     print(f"Customer '{customer.username}' and all related jobs have been deleted.\n")
+def manage_appointments(admin):
+    """Streamlined appointment management for admins."""
+    while True:
+        print("\nAppointment Management:")
+        print("1. View All Appointments")
+        print("2. Cancel Appointment")
+        print("3. Reschedule Appointment")
+        print("4. Back")
+        
+        choice = input("Select: ").strip()
+        
+        if choice == "1":
+            # View all appointments
+            if not jobs:
+                print("No appointments.")
+                continue
+            for idx, job in enumerate(jobs, 1):
+                print(f"{idx}. {job.summary()}")
+        
+        elif choice == "2":
+            # Cancel appointment
+            if not jobs:
+                print("No appointments to cancel.")
+                continue
+            
+            try:
+                idx = int(input("Enter appointment number to cancel: ")) - 1
+                job = jobs[idx]
+                
+                # Remove from customer and mechanic lists
+                if job in job.customer.jobs:
+                    job.customer.jobs.remove(job)
+                if job.mechanic and job in job.mechanic.assigned_jobs:
+                    job.mechanic.assigned_jobs.remove(job)
+                
+                jobs.remove(job)
+                print("Appointment cancelled successfully.")
+            
+            except (ValueError, IndexError):
+                print("Invalid selection.")
+        
+        elif choice == "3":
+            # Reschedule appointment
+            if not jobs:
+                print("No appointments to reschedule.")
+                continue
+            
+            try:
+                idx = int(input("Enter appointment number to reschedule: ")) - 1
+                job = jobs[idx]
+                
+                # Get new date and time
+                new_date = input("New date (YYYY-MM-DD): ")
+                new_time = input("New time (HH:MM): ")
+                
+                # Validate inputs
+                if not (is_valid_date(new_date) and is_valid_time(new_time)):
+                    print("Invalid date or time format.")
+                    continue
+                
+                # Update job details
+                job.date = new_date
+                job.time = new_time
+                print("Appointment rescheduled successfully.")
+            
+            except (ValueError, IndexError):
+                print("Invalid selection.")
+        
+        elif choice == "4":
+            break
+        else:
+            print("Invalid choice")
 
-
+# Update admin_actions to include the new method
 def admin_actions(admin: Admin):
     while True:
         print(
             "\nAdmin Menu: "
             "1-Assign Job, 2-Generate Report, 3-Logout, "
-            "4-View Customer Records, 5-Delete Customer"
+            "4-View Customer Records, 5-Delete Customer, "
+            "6-Manage Appointments"
         )
         choice = input("Select: ").strip()
 
         if choice == "1":
             assign_job_logic()
         elif choice == "2":
+
             generate_report_logic()
         elif choice == "3":
             break
@@ -440,6 +540,8 @@ def admin_actions(admin: Admin):
             view_customer_detail()
         elif choice == "5":
             delete_customer()
+        elif choice == "6":
+            manage_appointments(admin)
         else:
             print("Invalid choice")
 
