@@ -5,7 +5,7 @@ import sys
 # --- Utilities ---
 
 def secure_input(prompt):
-    """Use getpass if interactive terminal, else fallback to input."""
+    """Use getpass if terminal, else fallback to input."""
     if sys.stdin.isatty():
         try:
             return getpass.getpass(prompt)
@@ -24,7 +24,7 @@ def is_valid_date(date_str):
         return False
 
 def is_valid_time(time_str):
-    """Validate HH:MM (00:00 – 23:59)."""
+    """Validate HH:MM format (00:00–23:59)."""
     try:
         dt = datetime.strptime(time_str, "%H:%M")
         return 0 <= dt.hour < 24
@@ -32,12 +32,9 @@ def is_valid_time(time_str):
         return False
 
 def find_user(username):
-    for u in users:
-        if u.username == username:
-            return u
-    return None
+    return next((u for u in users if u.username == username), None)
 
-# --- Models / Data Structures ---
+# --- Models / Data Classes ---
 
 class User:
     def __init__(self, username, password, role):
@@ -79,11 +76,12 @@ class Invoice:
         self.job = job
         self.feedback = None
 
-# In-memory data stores
+# --- In-memory Storage ---
+
 users = []
 jobs = []
 
-# Default admin + sample mechanics
+# Default admin + some sample mechanics
 users.append(Admin("admin", "admin"))
 users.append(Mechanic("mech1", "mech1"))
 users.append(Mechanic("mech2", "mech2"))
@@ -95,18 +93,18 @@ def login(role):
     password = secure_input("Password: ")
     user = find_user(username)
     if not user:
-        print("Login failed – unknown user")
+        print("Login failed – unknown user.")
         return None
     if user.password != password:
-        print("Login failed – incorrect password")
+        print("Login failed – incorrect password.")
         return None
     if user.role != role:
-        print(f"Login failed – user is not a {role}")
+        print(f"Login failed – user is not a {role}.")
         return None
-    print(f"Logged in as {role} '{username}'")
+    print(f"Logged in as {role} '{username}'.")
     return user
 
-# --- Customer management / registration ---
+# --- Customer registration & account management ---
 
 def register_customer():
     username = input("Choose customer username: ").strip()
@@ -154,36 +152,15 @@ def delete_own_account(customer):
     if confirm != "yes":
         print("Deletion cancelled.")
         return False
+    # Remove customer jobs
     global jobs
     jobs = [job for job in jobs if job.customer != customer]
+    # Remove user
     users.remove(customer)
     print("Account deleted.")
     return True
 
 # --- Customer menu / actions ---
-
-def customer_actions(customer: Customer):
-    menu = {
-        "1": ("Book Service", _customer_book_service),
-        "2": ("My Jobs", _customer_view_jobs),
-        "3": ("Manage Account", _customer_manage_account),
-        "4": ("Add Feedback", _customer_add_feedback),
-        "5": ("Logout", None),
-    }
-    while True:
-        print("\n--- Customer Menu ---")
-        for key, (desc, _) in menu.items():
-            print(f"{key}. {desc}")
-        choice = input("Select: ").strip()
-        if choice == "5":
-            break
-        action = menu.get(choice)
-        if action:
-            func = action[1]
-            if func:
-                func(customer)
-        else:
-            print("Invalid choice, try again.")
 
 def _customer_book_service(customer):
     date = input("Date (YYYY-MM-DD): ").strip()
@@ -221,23 +198,23 @@ def _customer_manage_account(customer):
         print("\n--- Account Menu ---")
         for key, (desc, _) in sub_menu.items():
             print(f"{key}. {desc}")
-        sub = input("Select: ").strip()
-        if sub == "4":
+        choice = input("Select: ").strip()
+        if choice == "4":
             break
-        action = sub_menu.get(sub)
+        action = sub_menu.get(choice)
         if action:
             func = action[1]
             if func:
                 result = func(customer)
-                if sub == "3" and result:
-                    return  # account deleted; exit to main
+                if choice == "3" and result:
+                    return  # account deleted → exit
         else:
-            print("Invalid choice.")
+            print("Invalid choice, try again.")
 
 def _customer_add_feedback(customer):
     completed = [job for job in customer.jobs if job.status == "Completed"]
     if not completed:
-        print("No completed jobs to add feedback.")
+        print("No completed jobs to add feedback to.")
         return
     for i, job in enumerate(completed, start=1):
         print(f"{i}. {job.summary()}")
@@ -252,9 +229,60 @@ def _customer_add_feedback(customer):
         return
     feedback = input("Enter feedback: ").strip()
     job.invoice.feedback = feedback
-    print("Feedback added.")
+    print("Feedback added successfully.")
+
+def customer_actions(customer: Customer):
+    menu = {
+        "1": ("Book Service", _customer_book_service),
+        "2": ("My Jobs", _customer_view_jobs),
+        "3": ("Manage Account", _customer_manage_account),
+        "4": ("Add Feedback", _customer_add_feedback),
+        "5": ("Logout", None),
+    }
+    while True:
+        print("\n--- Customer Menu ---")
+        for key, (desc, _) in menu.items():
+            print(f"{key}. {desc}")
+        choice = input("Select: ").strip()
+        if choice == "5":
+            break
+        action = menu.get(choice)
+        if action:
+            func = action[1]
+            if func:
+                func(customer)
+        else:
+            print("Invalid choice, try again.")
 
 # --- Mechanic menu / actions ---
+
+def _mechanic_view_jobs(mechanic: Mechanic):
+    if not mechanic.assigned_jobs:
+        print("No assigned jobs.")
+        return
+    print("Assigned Jobs:")
+    for j in mechanic.assigned_jobs:
+        print(" -", j.summary())
+
+def _mechanic_update_job(mechanic: Mechanic):
+    if not mechanic.assigned_jobs:
+        print("No jobs assigned.")
+        return
+    for i, j in enumerate(mechanic.assigned_jobs, start=1):
+        print(f"{i}. {j.summary()}")
+    try:
+        sel = int(input("Select job number: ")) - 1
+        job = mechanic.assigned_jobs[sel]
+    except (ValueError, IndexError):
+        print("Invalid selection.")
+        return
+    new_status = input("New status (Pending / In Progress / Completed): ").title()
+    if new_status not in {"Pending", "In Progress", "Completed"}:
+        print("Invalid status.")
+        return
+    job.status = new_status
+    job.comments = input("Comments (optional): ").strip()
+    print("Job updated:", job.summary())
 
 def mechanic_actions(mechanic: Mechanic):
     menu = {
@@ -275,40 +303,9 @@ def mechanic_actions(mechanic: Mechanic):
             if func:
                 func(mechanic)
         else:
-            print("Invalid choice.")
+            print("Invalid choice, try again.")
 
-def _mechanic_view_jobs(mechanic):
-    if not mechanic.assigned_jobs:
-        print("No assigned jobs.")
-        return
-    print("Assigned Jobs:")
-    for j in mechanic.assigned_jobs:
-        print(" -", j.summary())
-
-def _mechanic_update_job(mechanic):
-    if not mechanic.assigned_jobs:
-        print("No jobs assigned.")
-        return
-    for i, j in enumerate(mechanic.assigned_jobs, start=1):
-        print(f"{i}. {j.summary()}")
-    try:
-        sel = int(input("Select job number: ")) - 1
-        job = mechanic.assigned_jobs[sel]
-    except (ValueError, IndexError):
-        print("Invalid selection.")
-        return
-    new_status = input("New status (Pending / In Progress / Completed): ").title()
-    if new_status not in {"Pending", "In Progress", "Completed"}:
-        print("Invalid status.")
-        return
-    job.status = new_status
-    job.comments = input("Comments (optional): ").strip()
-    print("Job updated:", job.summary())
-
-
-
-
-# --- Admin helper functions ---
+# --- Admin helper actions ---
 
 def assign_job_logic():
     pending = [j for j in jobs if j.status == "Pending" and j.mechanic is None]
@@ -342,17 +339,16 @@ def assign_job_logic():
         print("Invalid selection.")
         return
 
-    # Prevent conflict on date/time
+    # Prevent scheduling conflict
     for aj in mech.assigned_jobs:
         if aj.date == job.date and aj.time == job.time:
-            print(f"\nCannot assign — {mech.username} is already booked on {job.date} at {job.time}.")
+            print(f"\nCannot assign — {mech.username} already booked on {job.date} at {job.time}.")
             return
 
-    # Assign
     job.mechanic = mech
     mech.assigned_jobs.append(job)
     job.status = "In Progress"
-    print(f"Assigned job to {mech.username}: {job.summary()}")
+    print("Assigned job:", job.summary())
 
 def generate_report_logic():
     total = len(jobs)
@@ -360,20 +356,20 @@ def generate_report_logic():
     in_prog = sum(1 for j in jobs if j.status == "In Progress")
     completed = sum(1 for j in jobs if j.status == "Completed")
 
-    print("\n--- Job Report ---")
-    print(f"Total jobs     : {total}")
-    print(f"Pending        : {pending}")
-    print(f"In Progress    : {in_prog}")
-    print(f"Completed      : {completed}")
+    print("\n--- Service Job Report ---")
+    print(f"Total jobs   : {total}")
+    print(f"Pending      : {pending}")
+    print(f"In Progress  : {in_prog}")
+    print(f"Completed    : {completed}")
 
     mechanics = [u for u in users if isinstance(u, Mechanic)]
     if mechanics:
-        print("\nJobs by mechanic:")
+        print("\nJobs per mechanic:")
         for m in mechanics:
             print(f"  {m.username}: {len(m.assigned_jobs)}")
     else:
         print("\nNo mechanics registered.")
-    print("------------------\n")
+    print("---------------------------\n")
 
 def view_customers():
     customers = [u for u in users if isinstance(u, Customer)]
@@ -381,12 +377,12 @@ def view_customers():
         print("\nNo customers registered.\n")
         return
 
-    print("\n--- Customers & Jobs ---")
+    print("\n--- Customer Records ---")
     for c in customers:
-        print(f"Username: {c.username}")
-        print(f"Jobs count: {len(c.jobs)}")
-        for i, j in enumerate(c.jobs, start=1):
-            print(f"  {i}. {j.summary()}")
+        print(f"Username : {c.username}")
+        print(f"Jobs     : {len(c.jobs)}")
+        for j in c.jobs:
+            print("  -", j.summary())
         print()
     print("------------------------\n")
 
@@ -400,7 +396,7 @@ def delete_customer():
         print(f"{i}. {c.username}")
 
     try:
-        sel = int(input("Select customer to delete: ")) - 1
+        sel = int(input("Select customer number to delete: ")) - 1
         cust = customers[sel]
     except (ValueError, IndexError):
         print("Invalid selection.")
@@ -411,15 +407,12 @@ def delete_customer():
         print("Deletion cancelled.")
         return
 
-    # Remove jobs
     global jobs
     jobs = [j for j in jobs if j.customer != cust]
-    # Remove from mechanics assigned lists
     for m in (u for u in users if isinstance(u, Mechanic)):
         m.assigned_jobs = [j for j in m.assigned_jobs if j.customer != cust]
-    # Remove customer
     users.remove(cust)
-    print(f"Customer '{cust.username}' deleted along with their jobs.\n")
+    print(f"Customer '{cust.username}' deleted with all their jobs.\n")
 
 def create_invoice():
     completed = [j for j in jobs if j.status == "Completed" and not hasattr(j, 'invoice')]
@@ -431,14 +424,14 @@ def create_invoice():
         print(f"{i}. {job.summary()}")
 
     try:
-        sel = int(input("Select job to create invoice: ")) - 1
+        sel = int(input("Select job to create invoice for: ")) - 1
         job = completed[sel]
     except (ValueError, IndexError):
         print("Invalid selection.")
         return
 
     job.invoice = Invoice(job)
-    print("Invoice created.")
+    print("Invoice created for job:", job.summary())
 
 def view_invoices_feedback():
     inv_jobs = [j for j in jobs if hasattr(j, 'invoice')]
@@ -450,23 +443,20 @@ def view_invoices_feedback():
         fb = job.invoice.feedback or "(no feedback)"
         print(f"{i}. Job: {job.summary()} — Feedback: {fb}")
 
-    inp = input("Enter invoice number to view details or press Enter to return: ").strip()
-    if not inp:
+    sel = input("Enter invoice number to view details (or press Enter to go back): ").strip()
+    if not sel:
         return
     try:
-        sel = int(inp) - 1
-        job = inv_jobs[sel]
+        idx = int(sel) - 1
+        job = inv_jobs[idx]
     except (ValueError, IndexError):
         print("Invalid selection.")
         return
-
-    inv = job.invoice
     print("\n--- Invoice Detail ---")
-    print("Job:", job.summary())
+    inv = job.invoice
+    print("Job:     ", job.summary())
     print("Feedback:", inv.feedback or "(none)")
     print("----------------------\n")
-
-# --- Menus ---
 
 def admin_actions(admin: Admin):
     menu = {
@@ -478,21 +468,22 @@ def admin_actions(admin: Admin):
         "6": ("View Invoices / Feedback", view_invoices_feedback),
         "7": ("Logout", None),
     }
-
     while True:
         print("\n--- Admin Menu ---")
-        for key, (desc, _) in menu.items():
-            print(f"{key}. {desc}")
+        for k, (desc, _) in menu.items():
+            print(f"{k}. {desc}")
         choice = input("Select: ").strip()
         if choice == "7":
             break
-        action = menu.get(choice)
-        if action:
-            func = action[1]
+        entry = menu.get(choice)
+        if entry:
+            func = entry[1]
             if func:
                 func()
         else:
             print("Invalid choice, try again.")
+
+# --- Main Application Loop ---
 
 def main():
     menu = {
@@ -520,11 +511,9 @@ def main():
 
         action = entry[1]
         if action:
-            action()  # call the function
-        # else: if action is None, do nothing (shouldn't happen except for Exit)
+            action()
 
 def _login_and_run(role, action_func):
-    """Helper to login and then run the given action if login succeeds."""
     user = login(role)
     if user:
         action_func(user)
