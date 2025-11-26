@@ -590,6 +590,33 @@ def manage_appointments(admin):
         else:
             print("Invalid choice")
 
+def view_invoices_feedback():
+    # gather all jobs with invoices
+    invoice_jobs = [job for job in jobs if hasattr(job, 'invoice')]
+    if not invoice_jobs:
+        print("No invoices found.")
+        return
+
+    print("\nInvoices:")
+    for idx, job in enumerate(invoice_jobs, 1):
+        inv = job.invoice
+        status = f"Feedback: {inv.feedback}" if inv.feedback else "No feedback"
+        print(f"{idx}. Job: {job.summary()} — {status}")
+
+    # optionally, allow admin to pick one and view details / feedback
+    try:
+        sel = int(input("Select invoice number to view details, or 0 to return: ")) - 1
+        if sel == -1:
+            return
+        job = invoice_jobs[sel]
+        inv = job.invoice
+        print("\n--- Invoice Detail ---")
+        print("Job:", job.summary())
+        print("Feedback:", inv.feedback or "(none)")
+        print("----------------------\n")
+    except (ValueError, IndexError):
+        print("Invalid selection.")
+
 # Update admin_actions to include the new method
 def admin_actions(admin: Admin):
     while True:
@@ -597,7 +624,7 @@ def admin_actions(admin: Admin):
             "\nAdmin Menu: "
             "1-Assign Job, 2-Generate Report, 3-Logout, "
             "4-View Customer Records, 5-Delete Customer, "
-            "6-Manage Appointments, 7-Create Invoice"
+            "6-Manage Appointments, 7-Create Invoice, 8-View Invoices"
         )
         choice = input("Select: ").strip()
 
@@ -615,6 +642,8 @@ def admin_actions(admin: Admin):
             manage_appointments(admin)
         elif choice == "7":
             create_invoice(admin)
+        elif choice == "8":
+            view_invoices_feedback()
         else:
             print("Invalid choice")
 
