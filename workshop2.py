@@ -45,6 +45,10 @@ class Mechanic(User):
         super().__init__(username, password, "mechanic")
         self.assigned_jobs = []
 
+class Invoice:
+    def __init__(self, job):
+        self.job = job
+        self.feedback = None
 
 class Admin(User):
     def __init__(self, username, password):
@@ -214,9 +218,10 @@ def delete_own_account(current_user):
 # Modify customer_actions to include account deletion
 def customer_actions(customer: Customer):
     while True:
-        print("\nCustomer Menu: 1-Book Service, 2-My Jobs, 3-Manage Account, 4-Logout")
+        print("\nCustomer Menu: 1-Book Service, 2-My Jobs, 3-Manage Account, 4-Add Feedback, 5-Logout")
         choice = input("Select: ").strip()
 
+        # --- BOOK SERVICE ---
         if choice == "1":
             date = input("Date (YYYY-MM-DD): ").strip()
             if not is_valid_date(date):
@@ -237,35 +242,74 @@ def customer_actions(customer: Customer):
             customer.jobs.append(job)
             print("Service booked:", job.summary())
 
+        # --- VIEW JOBS ---
         elif choice == "2":
             print("My Jobs:")
             for j in customer.jobs:
                 print(" -", j.summary())
 
+        # --- MANAGE ACCOUNT ---
         elif choice == "3":
             while True:
                 print("\nAccount Menu: 1-View Details, 2-Change Password, 3-Delete Account, 4-Back")
                 sub = input("Select: ").strip()
-                
+
                 if sub == "1":
                     view_account(customer)
+
                 elif sub == "2":
                     change_password(customer)
+
                 elif sub == "3":
-                    # Account deletion
-                    if delete_own_account(customer):
-                        return  # Exit to main menu after account deletion
+                    confirm = input("Are you sure you want to delete your account? (y/n): ").lower()
+                    if confirm == "y":
+                        delete_account(customer)
+                        print("Account deleted.")
+                        return  # exit immediately after deletion
+
                 elif sub == "4":
                     break
+
                 else:
-                    print("Invalid choice")
+                    print("Invalid choice.")
 
+        # --- ADD FEEDBACK ---
         elif choice == "4":
+            if not customer.jobs:
+                print("No jobs to add feedback to.")
+                continue
+            
+            completed_jobs = [job for job in customer.jobs if job.status == "Completed"]
+
+            if not completed_jobs:
+                print("No completed jobs to add feedback to.")
+                continue
+
+            print("Your Completed Jobs:")
+            for idx, job in enumerate(completed_jobs, 1):
+                print(f"{idx}. {job.summary()}")
+
+            try:
+                job_idx = int(input("Select job to add feedback: ")) - 1
+                selected_job = completed_jobs[job_idx]
+
+                if not hasattr(selected_job, "invoice"):
+                    print("No invoice found for this job.")
+                    continue
+
+                feedback = input("Enter your feedback: ").strip()
+                selected_job.invoice.feedback = feedback
+                print("Feedback added successfully.")
+
+            except (ValueError, IndexError):
+                print("Invalid selection.")
+
+        # --- LOGOUT ---
+        elif choice == "5":
             break
+
         else:
-            print("Invalid choice")
-
-
+            print("Invalid choice.")
 
 # -------------------------------------------------
 # Mechanic menu
@@ -445,6 +489,34 @@ def delete_customer():
     users.remove(customer)
 
     print(f"Customer '{customer.username}' and all related jobs have been deleted.\n")
+
+
+def create_invoice(admin):
+    """Create a blank invoice for a completed job."""
+    # Find completed jobs without invoices
+    completed_jobs = [job for job in jobs if job.status == "Completed" and not hasattr(job, 'invoice')]
+    
+    if not completed_jobs:
+        print("No pending jobs to create invoices for.")
+        return
+    
+    print("\nCompleted Jobs:")
+    for idx, job in enumerate(completed_jobs, 1):
+        print(f"{idx}. {job.summary()}")
+    
+    try:
+        choice = int(input("Select job to create invoice for: ")) - 1
+        selected_job = completed_jobs[choice]
+        
+        # Create invoice for the job
+        invoice = Invoice(selected_job)
+        selected_job.invoice = invoice
+        
+        print("Invoice created successfully.")
+    except (ValueError, IndexError):
+        print("Invalid selection.")
+
+
 def manage_appointments(admin):
     """Streamlined appointment management for admins."""
     while True:
@@ -525,14 +597,13 @@ def admin_actions(admin: Admin):
             "\nAdmin Menu: "
             "1-Assign Job, 2-Generate Report, 3-Logout, "
             "4-View Customer Records, 5-Delete Customer, "
-            "6-Manage Appointments"
+            "6-Manage Appointments, 7-Create Invoice"
         )
         choice = input("Select: ").strip()
 
         if choice == "1":
             assign_job_logic()
         elif choice == "2":
-
             generate_report_logic()
         elif choice == "3":
             break
@@ -542,9 +613,10 @@ def admin_actions(admin: Admin):
             delete_customer()
         elif choice == "6":
             manage_appointments(admin)
+        elif choice == "7":
+            create_invoice(admin)
         else:
             print("Invalid choice")
-
 
 # -------------------------------------------------
 # Main loop
