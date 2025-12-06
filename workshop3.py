@@ -37,27 +37,27 @@ def find_user(username):
 # --- Models / Data Classes ---
 
 class User:
-    def __init__(self, username, password, role):
+    def init(self, username, password, role):
         self.username = username
         self.password = password
         self.role = role
 
 class Customer(User):
-    def __init__(self, username, password):
-        super().__init__(username, password, "customer")
+    def init(self, username, password):
+        super().init(username, password, "customer")
         self.jobs = []
 
 class Mechanic(User):
-    def __init__(self, username, password):
-        super().__init__(username, password, "mechanic")
+    def init(self, username, password):
+        super().init(username, password, "mechanic")
         self.assigned_jobs = []
 
 class Admin(User):
-    def __init__(self, username, password):
-        super().__init__(username, password, "admin")
+    def init(self, username, password):
+        super().init(username, password, "admin")
 
 class ServiceJob:
-    def __init__(self, customer, date, time):
+    def init(self, customer, date, time):
         self.customer = customer
         self.date = date
         self.time = time
@@ -72,7 +72,7 @@ class ServiceJob:
                 f"Comments: {self.comments}")
 
 class Invoice:
-    def __init__(self, job):
+    def init(self, job):
         self.job = job
         self.feedback = None
 
@@ -133,7 +133,7 @@ def change_password(customer):
         print("Incorrect password.")
         return
     new_pw = secure_input("New password: ")
-    confirm = secure_input("Confirm new password: ")
+confirm = secure_input("Confirm new password: ")
     if new_pw != confirm:
         print("Passwords do not match.")
         return
@@ -255,7 +255,6 @@ def customer_actions(customer: Customer):
             print("Invalid choice, try again.")
 
 # --- Mechanic menu / actions ---
-
 def _mechanic_view_jobs(mechanic: Mechanic):
     if not mechanic.assigned_jobs:
         print("No assigned jobs.")
@@ -385,7 +384,6 @@ def view_customers():
             print("  -", j.summary())
         print()
     print("------------------------\n")
-
 def delete_customer():
     customers = [u for u in users if isinstance(u, Customer)]
     if not customers:
@@ -517,6 +515,345 @@ def _login_and_run(role, action_func):
     user = login(role)
     if user:
         action_func(user)
+# -------------------- GUI RANGE START --------------------
+# The GUI code below is self-contained and calls your existing functions/classes/data.
+# It will run by default when the file is executed. The CLI (main) remains available.
+import tkinter as tk
+from tkinter import ttk, messagebox, simpledialog
 
-if __name__ == "__main__":
-    main()
+def run_gui():
+    """Start the simple tkinter GUI (600x450). Uses the same users/jobs data structures."""
+    root = tk.Tk()
+    root.title("Service System GUI")
+    root.geometry("600x450")
+    root.resizable(True, True)
+
+    # --- Helpers that operate on the same data structures (users, jobs, classes) ---
+    def refresh_tree(tree, rows):
+        for item in tree.get_children():
+            tree.delete(item)
+        for row in rows:
+            tree.insert("", tk.END, values=row)
+
+    def open_dashboard_for(user):
+        """Open a simple role-specific window (popups + small tables)."""
+        win = tk.Toplevel(root)
+        win.title(f"{user.role.capitalize()} - {user.username}")
+        win.geometry("620x420")
+
+        header = ttk.Frame(win)
+        header.pack(fill="x", pady=6, padx=6)
+        ttk.Label(header, text=f"{user.role.capitalize()} : {user.username}", font=("Segoe UI", 12, "bold")).pack(side="left")
+        ttk.Button(header, text="Close", command=win.destroy).pack(side="right")
+
+        body = ttk.Frame(win)
+        body.pack(fill="both", expand=True, padx=8, pady=8)
+
+        # Left buttons frame
+        left = ttk.Frame(body)
+        left.pack(side="left", fill="y", padx=(0,8))
+
+        # Right area: treeview or text
+        right = ttk.Frame(body)
+        right.pack(side="right", fill="both", expand=True)
+
+        # For job lists display
+        cols_common = ("cust","date","time","status","mech","comments")
+        tree = ttk.Treeview(right, columns=cols_common, show="headings", height=15)
+        for c,w in [("cust",120),("date",90),("time",70),("status",110),("mech",100),("comments",200)]:
+            tree.heading(c, text=c.title()); tree.column(c, width=w)
+        tree.pack(fill="both", expand=True)
+
+        # ---------- Customer UI ----------
+        if user.role == "customer":
+            ttk.Button(left, text="Book Service", width=20, command=lambda: gui_book_service(user, tree)).pack(pady=6)
+            ttk.Button(left, text="My Jobs", width=20, command=lambda: gui_show_customer_jobs(user, tree)).pack(pady=6)
+            ttk.Button(left, text="Change Password", width=20, command=lambda: gui_change_password(user)).pack(pady=6)
+            ttk.Button(left, text="Delete Account", width=20, command=lambda: gui_delete_account(user, win)).pack(pady=6)
+            ttk.Button(left, text="Add Feedback", width=20, command=lambda: gui_add_feedback(user)).pack(pady=6)
+            gui_show_customer_jobs(user, tree)
+
+        # ---------- Mechanic UI ----------
+        elif user.role == "mechanic":
+            ttk.Button(left, text="View My Jobs", width=20, command=lambda: gui_show_mechanic_jobs(user, tree)).pack(pady=6)
+            ttk.Button(left, text="Update Job Status", width=20, command=lambda: gui_update_mechanic_job(user, tree)).pack(pady=6)
+            gui_show_mechanic_jobs(user, tree)
+
+        # ---------- Admin UI ----------
+        elif user.role == "admin":
+            ttk.Button(left, text="Assign Job", width=20, command=lambda: gui_assign_job(tree)).pack(pady=6)
+            ttk.Button(left, text="Generate Report", width=20, command=gui_generate_report).pack(pady=6)
+            ttk.Button(left, text="View Customers", width=20, command=gui_view_customers).pack(pady=6)
+            ttk.Button(left, text="Delete Customer", width=20, command=lambda: gui_delete_customer(tree)).pack(pady=6)
+            ttk.Button(left, text="Create Invoice", width=20, command=lambda: gui_create_invoice(tree)).pack(pady=6)
+            ttk.Button(left, text="View Invoices/Feedback", width=20, command=gui_view_invoices).pack(pady=6)
+            gui_update_admin_tree(tree)
+# ---------- GUI action implementations (use same data structures) ----------
+    def gui_book_service(customer, tree=None):
+        date = simpledialog.askstring("Date", "Date (YYYY-MM-DD):", parent=root)
+        if not date or not is_valid_date(date):
+            messagebox.showerror("Error", "Invalid date.")
+            return
+        time = simpledialog.askstring("Time", "Time (HH:MM):", parent=root)
+        if not time or not is_valid_time(time):
+            messagebox.showerror("Error", "Invalid time.")
+            return
+        if any(j.date == date and j.time == time for j in customer.jobs):
+            messagebox.showerror("Error", "You already have a booking at that date/time.")
+            return
+        job = ServiceJob(customer, date, time)
+        jobs.append(job); customer.jobs.append(job)
+        messagebox.showinfo("Booked", "Service booked.")
+        if tree:
+            gui_show_customer_jobs(customer, tree)
+
+    def gui_show_customer_jobs(customer, tree):
+        rows = []
+        for j in customer.jobs:
+            mech = j.mechanic.username if j.mechanic else ""
+            rows.append((j.customer.username, j.date, j.time, j.status, mech, j.comments))
+        refresh_tree(tree, rows)
+
+    def gui_change_password(user):
+        current = simpledialog.askstring("Current Password", "Enter current password:", show="*", parent=root)
+        if current != user.password:
+            messagebox.showerror("Error", "Incorrect password.")
+            return
+        new_pw = simpledialog.askstring("New Password", "Enter new password:", show="*", parent=root)
+        confirm = simpledialog.askstring("Confirm Password", "Confirm new password:", show="*", parent=root)
+        if new_pw != confirm:
+            messagebox.showerror("Error", "Passwords do not match.")
+            return
+        if not new_pw or not new_pw.strip():
+            messagebox.showerror("Error", "Password cannot be empty.")
+            return
+        user.password = new_pw
+        messagebox.showinfo("Success", "Password updated successfully.")
+
+    def gui_delete_account(user, parent_win):
+        pw = simpledialog.askstring("Confirm", "Enter your password to confirm deletion:", show="*", parent=parent_win)
+        if pw != user.password:
+            messagebox.showerror("Error", "Incorrect password.")
+            return
+        if not messagebox.askyesno("Confirm", "Are you sure you want to delete your account?"):
+            return
+        global jobs, users
+        jobs = [job for job in jobs if job.customer != user]
+        for m in (u for u in users if isinstance(u, Mechanic)):
+            m.assigned_jobs = [j for j in m.assigned_jobs if j.customer != user]
+        users.remove(user)
+        messagebox.showinfo("Deleted", "Account deleted.")
+        parent_win.destroy()
+
+    def gui_add_feedback(customer):
+        completed = [job for job in customer.jobs if job.status == "Completed" and job.invoice]
+        if not completed:
+            messagebox.showinfo("Info", "No completed jobs with invoice.")
+            return
+        choices = [f"{i+1}. {j.summary()}" for i,j in enumerate(completed)]
+        sel = simpledialog.askinteger("Select job", "\n".join(choices)+"\nEnter number:", parent=root, minvalue=1, maxvalue=len(completed))
+        if not sel: return
+        job = completed[sel-1]
+        fb = simpledialog.askstring("Feedback", "Enter feedback:", parent=root)
+        job.invoice.feedback = fb
+        messagebox.showinfo("Done", "Feedback added.")
+
+    def gui_show_mechanic_jobs(mech, tree):
+        rows = []
+        for j in mech.assigned_jobs:
+            rows.append((j.customer.username, j.date, j.time, j.status, j.mechanic.username if j.mechanic else "", j.comments))
+        refresh_tree(tree, rows)
+
+    def gui_update_mechanic_job(mech, tree):
+if not mech.assigned_jobs:
+            messagebox.showinfo("Info", "No assigned jobs.")
+            return
+        choices = [f"{i+1}. {j.summary()}" for i,j in enumerate(mech.assigned_jobs)]
+        sel = simpledialog.askinteger("Select job", "\n".join(choices)+"\nEnter number:", parent=root, minvalue=1, maxvalue=len(mech.assigned_jobs))
+        if not sel: return
+        job = mech.assigned_jobs[sel-1]
+        status = simpledialog.askstring("Status", "New status (Pending/In Progress/Completed):", parent=root)
+        if status is None: return
+        status = status.title()
+        if status not in {"Pending", "In Progress", "Completed"}:
+            messagebox.showerror("Error", "Invalid status.")
+            return
+        job.status = status
+        job.comments = simpledialog.askstring("Comments", "Comments (optional):", parent=root) or ""
+        messagebox.showinfo("Done", "Job updated.")
+        if tree:
+            gui_show_mechanic_jobs(mech, tree)
+
+    def gui_update_admin_tree(tree):
+        rows = []
+        for j in jobs:
+            mech = j.mechanic.username if j.mechanic else ""
+            rows.append((j.customer.username, j.date, j.time, j.status, mech, j.comments))
+        refresh_tree(tree, rows)
+
+    def gui_assign_job(tree=None):
+        pending = [j for j in jobs if j.status == "Pending" and j.mechanic is None]
+        if not pending:
+            messagebox.showinfo("Info", "No pending jobs.")
+            return
+        choices = [f"{i+1}. {j.summary()}" for i,j in enumerate(pending)]
+        sel = simpledialog.askinteger("Select job", "\n".join(choices)+"\nEnter number:", parent=root, minvalue=1, maxvalue=len(pending))
+        if not sel: return
+        job = pending[sel-1]
+        mechanics = [u for u in users if isinstance(u, Mechanic)]
+        if not mechanics:
+            messagebox.showinfo("Info", "No mechanics available.")
+            return
+        mech_choices = [f"{i+1}. {m.username}" for i,m in enumerate(mechanics)]
+        msel = simpledialog.askinteger("Select mechanic", "\n".join(mech_choices)+"\nEnter number:", parent=root, minvalue=1, maxvalue=len(mechanics))
+        if not msel: return
+        mech = mechanics[msel-1]
+        # prevent conflict
+        for aj in mech.assigned_jobs:
+            if aj.date == job.date and aj.time == job.time:
+                messagebox.showerror("Error", f"{mech.username} already booked at that time.")
+                return
+        job.mechanic = mech; mech.assigned_jobs.append(job); job.status = "In Progress"
+        messagebox.showinfo("Assigned", "Job assigned.")
+        if tree:
+            gui_update_admin_tree(tree)
+
+    def gui_generate_report():
+        total = len(jobs); pending = sum(1 for j in jobs if j.status=="Pending")
+        in_prog = sum(1 for j in jobs if j.status=="In Progress"); completed = sum(1 for j in jobs if j.status=="Completed")
+        s = (f"Total: {total}\nPending: {pending}\nIn Progress: {in_prog}\nCompleted: {completed}\n\n")
+        mechs = [u for u in users if isinstance(u, Mechanic)]
+        for m in mechs:
+            s += f"{m.username}: {len(m.assigned_jobs)} jobs\n"
+        messagebox.showinfo("Report", s)
+
+    def gui_view_customers():
+        customers = [u for u in users if isinstance(u, Customer)]
+        if not customers:
+            messagebox.showinfo("Info", "No customers registered.")
+            return
+        s = ""
+        for c in customers:
+            s += f"Username: {c.username}\nJobs: {len(c.jobs)}\n"
+            for j in c.jobs:
+                s += "  - " + j.summary() + "\n"
+            s += "\n"
+        dlg = tk.Toplevel(root); dlg.title("Customer Records")
+        txt = tk.Text(dlg, width=100, height=30); txt.pack(fill="both", expand=True)
+        txt.insert(tk.END, s)
+
+    def gui_delete_customer(tree=None):
+customers = [u for u in users if isinstance(u, Customer)]
+        if not customers:
+            messagebox.showinfo("Info", "No customers to delete.")
+            return
+        choices = [f"{i+1}. {c.username} ({len(c.jobs)} jobs)" for i,c in enumerate(customers)]
+        sel = simpledialog.askinteger("Select customer", "\n".join(choices)+"\nEnter number:", parent=root, minvalue=1, maxvalue=len(customers))
+        if not sel: return
+        cust = customers[sel-1]
+        if not messagebox.askyesno("Confirm", f"Delete customer '{cust.username}' and all their jobs?"):
+            return
+        global jobs
+        jobs = [j for j in jobs if j.customer != cust]
+        for m in (u for u in users if isinstance(u, Mechanic)):
+            m.assigned_jobs = [j for j in m.assigned_jobs if j.customer != cust]
+        users.remove(cust)
+        messagebox.showinfo("Deleted", f"Customer '{cust.username}' deleted.")
+        if tree:
+            gui_update_admin_tree(tree)
+
+    def gui_create_invoice(tree=None):
+        completed_no_inv = [j for j in jobs if j.status=="Completed" and not j.invoice]
+        if not completed_no_inv:
+            messagebox.showinfo("Info", "No completed jobs pending invoice.")
+            return
+        choices = [f"{i+1}. {j.summary()}" for i,j in enumerate(completed_no_inv)]
+        sel = simpledialog.askinteger("Select job", "\n".join(choices)+"\nEnter number:", parent=root, minvalue=1, maxvalue=len(completed_no_inv))
+        if not sel: return
+        job = completed_no_inv[sel-1]
+        job.invoice = Invoice(job)
+        messagebox.showinfo("Done", "Invoice created.")
+        if tree:
+            gui_update_admin_tree(tree)
+
+    def gui_view_invoices():
+        inv_jobs = [j for j in jobs if j.invoice]
+        if not inv_jobs:
+            messagebox.showinfo("Info", "No invoices found.")
+            return
+        s = ""
+        for i,j in enumerate(inv_jobs, start=1):
+            fb = j.invoice.feedback or "(no feedback)"
+            s += f"{i}. Job: {j.summary()} — Feedback: {fb}\n"
+        dlg = tk.Toplevel(root); dlg.title("Invoices & Feedback")
+        txt = tk.Text(dlg, width=100, height=30); txt.pack(fill="both", expand=True)
+        txt.insert(tk.END, s)
+
+    # ------------------ Main Login Window ------------------
+    main_frame = ttk.Frame(root, padding=12)
+    main_frame.pack(fill="both", expand=True)
+
+    ttk.Label(main_frame, text="Service System", font=("Segoe UI", 18, "bold")).pack(pady=(4,8))
+
+    lf = ttk.LabelFrame(main_frame, text="Login", padding=10)
+    lf.pack(pady=6, padx=6, fill="x")
+
+    ttk.Label(lf, text="Role:").grid(row=0, column=0, padx=6, pady=6, sticky="e")
+    role_var = tk.StringVar(value="customer")
+    role_combo = ttk.Combobox(lf, textvariable=role_var, state="readonly", values=["customer","mechanic","admin"], width=14)
+    role_combo.grid(row=0, column=1, padx=6, pady=6, sticky="w")
+
+    ttk.Label(lf, text="Username:").grid(row=1, column=0, padx=6, pady=6, sticky="e")
+    uname_entry = ttk.Entry(lf); uname_entry.grid(row=1, column=1, padx=6, pady=6, sticky="w")
+
+    ttk.Label(lf, text="Password:").grid(row=2, column=0, padx=6, pady=6, sticky="e")
+    pw_entry = ttk.Entry(lf, show="*"); pw_entry.grid(row=2, column=1, padx=6, pady=6, sticky="w")
+
+    def attempt_login():
+        role = role_var.get()
+        uname = uname_entry.get().strip()
+        pw = pw_entry.get()
+        user = find_user(uname)
+        if not user or user.password != pw or user.role != role:
+            messagebox.showerror("Login failed", "Invalid credentials or role.")
+            return
+        uname_entry.delete(0, tk.END); pw_entry.delete(0, tk.END)
+        open_dashboard_for(user)
+
+    ttk.Button(lf, text="Login", command=attempt_login).grid(row=3, column=0, columnspan=2, pady=8)
+    ttk.Button(main_frame, text="Register Customer", command=lambda: open_register()).pack(pady=(6,2))
+
+    ttk.Label(main_frame, text="Default accounts: admin/admin, mech1/mech1, mech2/mech2", foreground="gray").pack(pady=(6,0))
+# Register popup
+    def open_register():
+        dlg = tk.Toplevel(root); dlg.title("Register Customer")
+        dlg.geometry("360x180")
+        ttk.Label(dlg, text="Username:").pack(pady=(10,0))
+        u_e = ttk.Entry(dlg); u_e.pack(pady=4)
+        ttk.Label(dlg, text="Password:").pack(pady=(6,0))
+        p_e = ttk.Entry(dlg, show="*"); p_e.pack(pady=4)
+        def do_create():
+            username = u_e.get().strip(); password = p_e.get()
+            if not username:
+                messagebox.showerror("Error", "Username cannot be empty."); return
+            if find_user(username):
+                messagebox.showerror("Error", "Username already exists."); return
+            if not password.strip():
+                messagebox.showerror("Error", "Password cannot be empty."); return
+            users.append(Customer(username, password))
+            messagebox.showinfo("Success", f"Customer '{username}' created.")
+            dlg.destroy()
+        ttk.Button(dlg, text="Create", command=do_create).pack(pady=10)
+
+    root.mainloop()
+
+# -------------------- GUI RANGE END ----------------------
+
+# At the end: keep main() intact; run GUI by default but fallback to CLI if GUI fails.
+if name == "main":
+    try:
+        run_gui()
+    except Exception as e:
+        print("GUI failed to start or crashed. Falling back to CLI.")
+        print("Error:", e)
+        main()
