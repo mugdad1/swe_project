@@ -34,3 +34,18 @@ def get_next_washer_id():
     global washer_id_counter
     washer_id_counter += 1
     return washer_id_counter - 1
+
+
+PAYMENT_METHODS = {
+    "1": "Cash",
+    "2": "Credit Card",
+    "3": "IBAN Transfer",
+    "4": "STC Pay",
+}
+
+FAKE_PAYMENT_DETAILS = {
+    "iban": "SA12 3456 7890 1234 5678 9012 34",
+    "iban_bank": "Saudi National Bank (SNB)",
+    "iban_holder": "Laundry Express Co.",
+    "stc_pay": "+966 50 123 4567",
+}

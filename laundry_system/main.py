@@ -5,20 +5,19 @@ from admin_menu import admin_login
 from utils import clear_screen
 
 
-def main_menu():
-    """Main entry point of the application"""
+def main_menu() -> None:
     while True:
         clear_screen()
-        print("\n" + "="*50)
+        print("\n" + "=" * 50)
         print("  LAUNDRY SERVICE MANAGEMENT SYSTEM")
-        print("="*50)
+        print("=" * 50)
         print("\n1. Customer Sign Up")
         print("2. Customer Login")
         print("3. Washer Login")
         print("4. Admin Login")
         print("5. Exit")
 
-        choice = input("\nEnter your choice: ")
+        choice: str = input("\nEnter your choice: ")
 
         if choice == "1":
             customer_signup()

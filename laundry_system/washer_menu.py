@@ -1,14 +1,22 @@
-from utils import find_washer_by_id, get_washer_tasks, find_task_by_id, clear_screen, pause, show_message
+from __future__ import annotations
+from classes import Washer, Task
+from utils import (
+    find_washer_by_id,
+    get_washer_tasks,
+    find_task_by_id,
+    clear_screen,
+    pause,
+    show_message,
+)
 from data import washers
 
 
-def washer_login():
-    """Login as a washer"""
+def washer_login() -> None:
     clear_screen()
     print("\n=== Washer Login ===")
-    washer_id = int(input("Enter your washer ID: "))
+    washer_id: int = int(input("Enter your washer ID: "))
 
-    washer = find_washer_by_id(washer_id)
+    washer: Washer | None = find_washer_by_id(washer_id)
 
     if washer:
         print(f"Welcome, {washer.name}!")
@@ -18,8 +26,7 @@ def washer_login():
         show_message("Washer ID not found!", wait_time=2)
 
 
-def washer_dashboard(washer):
-    """Washer main menu"""
+def washer_dashboard(washer: Washer) -> None:
     while True:
         clear_screen()
         print(f"\n=== Washer Dashboard ({washer.name}) ===")
@@ -28,7 +35,7 @@ def washer_dashboard(washer):
         print("3. Add Notes to Task")
         print("4. Logout")
 
-        choice = input("\nEnter your choice: ")
+        choice: str = input("\nEnter your choice: ")
 
         if choice == "1":
             view_tasks(washer)
@@ -44,29 +51,28 @@ def washer_dashboard(washer):
             show_message("Invalid choice!", wait_time=1)
 
 
-def view_tasks(washer):
-    """View all tasks assigned to the washer"""
+def view_tasks(washer: Washer) -> None:
     clear_screen()
     print("\n=== Your Tasks ===")
-    tasks = get_washer_tasks(washer.washer_id)
+    tasks: list[Task | None] = get_washer_tasks(washer.washer_id)
 
     if not tasks:
         show_message("You have no tasks assigned.", wait_time=2)
         return
 
     for task in tasks:
-        print(task)
+        if task:
+            print(task)
 
     pause()
 
 
-def update_task_status(washer):
-    """Update the status of a task"""
+def update_task_status(washer: Washer) -> None:
     clear_screen()
     print("\n=== Update Task Status ===")
-    task_id = int(input("Enter task ID: "))
+    task_id: int = int(input("Enter task ID: "))
 
-    task = find_task_by_id(task_id)
+    task: Task | None = find_task_by_id(task_id)
 
     if task and task_id in washer.assigned_tasks:
         print("\nSelect new status:")
@@ -74,7 +80,7 @@ def update_task_status(washer):
         print("2. In Progress")
         print("3. Done")
 
-        status_choice = input("\nEnter your choice: ")
+        status_choice: str = input("\nEnter your choice: ")
 
         if status_choice == "1":
             task.status = "Not Started"
@@ -91,16 +97,15 @@ def update_task_status(washer):
         show_message("Task not found or not assigned to you!", wait_time=2)
 
 
-def add_task_notes(washer):
-    """Add notes to a task"""
+def add_task_notes(washer: Washer) -> None:
     clear_screen()
     print("\n=== Add Notes to Task ===")
-    task_id = int(input("Enter task ID: "))
+    task_id: int = int(input("Enter task ID: "))
 
-    task = find_task_by_id(task_id)
+    task: Task | None = find_task_by_id(task_id)
 
     if task and task_id in washer.assigned_tasks:
-        notes = input("Enter notes: ")
+        notes: str = input("Enter notes: ")
         task.notes = notes
         show_message("Notes added successfully!", wait_time=2)
     else:
