@@ -128,3 +128,11 @@ def validate_time(time_str: str) -> bool:
         return True
     except:
         return False
+
+
+def get_int_input(prompt: str) -> int | None:
+    """Safely get integer input - returns None if invalid"""
+    try:
+        return int(input(prompt))
+    except ValueError:
+        return None

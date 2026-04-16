@@ -41,7 +41,12 @@ class Appointment:
         self.item_types: str = item_types
 
     def __str__(self) -> str:
-        return f"ID: {self.appointment_id}, Customer: {self.customer_id}, Date: {self.date}, Time: {self.time}, Status: {self.status}, Service: {self.service_type} ({self.item_count} pcs), Payment: {self.payment_method} ({self.payment_status})"
+        items = (
+            f"{self.item_count} {self.item_types}"
+            if self.item_types
+            else f"{self.item_count} pcs"
+        )
+        return f"ID: {self.appointment_id}, Date: {self.date}, {self.time}, Status: {self.status}, Service: {self.service_type}, Items: {items}, Payment: {self.payment_method} ({self.payment_status})"
 
 
 class Task:

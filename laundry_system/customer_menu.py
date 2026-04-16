@@ -1,5 +1,31 @@
 from __future__ import annotations
+import os
+import sys
 from classes import Customer, Appointment
+
+
+def get_password(prompt: str = "Enter your password: ") -> str:
+    """Get password - shows as * if terminal supports it"""
+    print(prompt, end="", flush=True)
+    pw = ""
+    if os.isatty(sys.stdin.fileno()):
+        import termios
+
+        try:
+            old = termios.tcgetattr(sys.stdin)
+            new = termios.tcgetattr(sys.stdin)
+            new[3] = new[3] & ~termios.ECHO
+            termios.tcsetattr(sys.stdin, termios.TCSADRAIN, new)
+            pw = sys.stdin.readline().rstrip("\n")
+            termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old)
+            print()
+        except:
+            pw = sys.stdin.readline().rstrip("\n")
+    else:
+        pw = sys.stdin.readline().rstrip("\n")
+    return pw
+
+
 from data import (
     customers,
     appointments,
@@ -8,6 +34,7 @@ from data import (
     PAYMENT_METHODS,
     FAKE_PAYMENT_DETAILS,
     SERVICE_TYPES,
+    SERVICE_PRICES,
 )
 from utils import (
     find_customer_by_email,
@@ -28,15 +55,20 @@ def customer_signup() -> None:
     name: str = input("Enter your name: ")
     email: str = input("Enter your email: ")
 
-    if not validate_email(email):
-        show_message("Invalid email format!", wait_time=2)
-        return
+    while not validate_email(email):
+        print(
+            "\nInvalid email format! Must contain '@' and '.' (e.g., user@example.com)"
+        )
+        email = input("Enter your email: ")
 
-    if find_customer_by_email(email):
-        show_message("Email already registered!", wait_time=2)
-        return
+    while find_customer_by_email(email):
+        print("\nEmail already registered! Please use a different email.")
+        email = input("Enter your email: ")
+        while not validate_email(email):
+            print("Invalid email format! Must contain '@' and '.'")
+            email = input("Enter your email: ")
 
-    password: str = input("Enter your password: ")
+    password: str = get_password("Enter your password: ")
 
     customer_id: int = get_next_customer_id()
     new_customer: Customer = Customer(customer_id, name, email, password)
@@ -49,7 +81,7 @@ def customer_login() -> None:
     clear_screen()
     print("\n=== Customer Login ===")
     email: str = input("Enter your email: ")
-    password: str = input("Enter your password: ")
+    password: str = get_password("Enter your password: ")
 
     customer: Customer | None = find_customer_by_email(email)
 
@@ -103,23 +135,17 @@ def book_service(customer: Customer) -> None:
         time = input("Enter time (HH:MM): ")
 
     print("\n=== Select Service ===")
-    print("1. Wash")
-    print("2. Dry Clean")
-    print("3. Iron")
-    print("4. Wash & Iron")
-    print("5. Express Service")
-    print("6. Other (custom)")
+    print("1. Wash - 10 SR")
+    print("2. Iron - 5 SR")
+    print("3. Wash & Iron - 15 SR")
 
-    service_choice: str = input("\nEnter your choice (1-6): ")
+    service_choice: str = input("\nEnter your choice (1-3): ")
 
-    if service_choice not in ["1", "2", "3", "4", "5", "6"]:
+    if service_choice not in ["1", "2", "3"]:
         show_message("Invalid choice! Defaulting to Wash.", wait_time=2)
         service_choice = "1"
 
     service_type: str = SERVICE_TYPES[service_choice]
-
-    if service_type == "Other":
-        service_type = input("Enter custom service description: ")
 
     item_count: int = 0
     while item_count <= 0:
@@ -131,6 +157,10 @@ def book_service(customer: Customer) -> None:
             print("Please enter a valid number.")
 
     item_types: str = input("Enter item types (e.g., T-shirts, Pants, Dresses): ")
+
+    base_price = SERVICE_PRICES.get(service_type, 15)
+    total_price = base_price * item_count
+    print(f"\nTotal Price: {total_price} SR ({item_count} x {base_price} SR)")
 
     print("\n=== Choose Payment Method ===")
     print("1. Cash (on delivery)")
@@ -201,7 +231,11 @@ def view_appointments(customer: Customer) -> None:
 def view_appointment_details(customer: Customer) -> None:
     clear_screen()
     print("\n=== View Appointment Details ===")
-    appointment_id: int = int(input("Enter appointment ID: "))
+    try:
+        appointment_id: int = int(input("Enter appointment ID: "))
+    except ValueError:
+        show_message("Invalid ID! Enter a number.", wait_time=2)
+        return
 
     apt: Appointment | None = None
     for appointment in appointments:
@@ -239,7 +273,11 @@ def view_appointment_details(customer: Customer) -> None:
 def cancel_appointment(customer: Customer) -> None:
     clear_screen()
     print("\n=== Cancel Appointment ===")
-    appointment_id: int = int(input("Enter appointment ID: "))
+    try:
+        appointment_id: int = int(input("Enter appointment ID: "))
+    except ValueError:
+        show_message("Invalid ID! Enter a number.", wait_time=2)
+        return
 
     apt: Appointment | None = None
     for appointment in appointments:

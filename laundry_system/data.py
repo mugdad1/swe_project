@@ -52,18 +52,12 @@ FAKE_PAYMENT_DETAILS = {
 
 SERVICE_TYPES = {
     "1": "Wash",
-    "2": "Dry Clean",
-    "3": "Iron",
-    "4": "Wash & Iron",
-    "5": "Express Service",
-    "6": "Other",
+    "2": "Iron",
+    "3": "Wash & Iron",
 }
 
 SERVICE_PRICES = {
     "Wash": 10,
-    "Dry Clean": 25,
-    "Iron": 8,
+    "Iron": 5,
     "Wash & Iron": 15,
-    "Express Service": 20,
-    "Other": 15,
 }

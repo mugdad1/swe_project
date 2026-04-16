@@ -1,5 +1,31 @@
 from __future__ import annotations
+import os
+import sys
 from classes import Customer, Washer, Task, Appointment
+
+
+def get_password(prompt: str = "Enter your password: ") -> str:
+    """Get password - hidden if terminal supports it"""
+    print(prompt, end="", flush=True)
+    pw = ""
+    if os.isatty(sys.stdin.fileno()):
+        import termios
+
+        try:
+            old = termios.tcgetattr(sys.stdin)
+            new = termios.tcgetattr(sys.stdin)
+            new[3] = new[3] & ~termios.ECHO
+            termios.tcsetattr(sys.stdin, termios.TCSADRAIN, new)
+            pw = sys.stdin.readline().rstrip("\n")
+            termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old)
+            print()
+        except:
+            pw = sys.stdin.readline().rstrip("\n")
+    else:
+        pw = sys.stdin.readline().rstrip("\n")
+    return pw
+
+
 from data import (
     customers,
     appointments,
@@ -22,7 +48,7 @@ from utils import (
 def admin_login() -> None:
     clear_screen()
     print("\n=== Admin Login ===")
-    password: str = input("Enter admin password: ")
+    password: str = get_password("Enter admin password: ")
 
     if password == "admin123":
         print("Welcome, Admin!")
@@ -82,7 +108,11 @@ def manage_customers() -> None:
         pause()
     elif choice == "2":
         clear_screen()
-        customer_id: int = int(input("Enter customer ID to delete: "))
+        try:
+            customer_id: int = int(input("Enter customer ID to delete: "))
+        except ValueError:
+            show_message("Invalid ID! Enter a number.", wait_time=2)
+            return
         customer: Customer | None = find_customer_by_id(customer_id)
         if customer:
             customers.remove(customer)
@@ -113,7 +143,11 @@ def manage_appointments() -> None:
             print(apt)
         pause()
     elif choice == "2":
-        appointment_id: int = int(input("Enter appointment ID to cancel: "))
+        try:
+            appointment_id: int = int(input("Enter appointment ID to cancel: "))
+        except ValueError:
+            show_message("Invalid ID! Enter a number.", wait_time=2)
+            return
         apt: Appointment | None = find_appointment_by_id(appointment_id)
         if apt:
             appointments.remove(apt)
@@ -121,7 +155,11 @@ def manage_appointments() -> None:
         else:
             show_message("Appointment not found!", wait_time=2)
     elif choice == "3":
-        appointment_id = int(input("Enter appointment ID: "))
+        try:
+            appointment_id = int(input("Enter appointment ID: "))
+        except ValueError:
+            show_message("Invalid ID! Enter a number.", wait_time=2)
+            return
         apt = find_appointment_by_id(appointment_id)
         if apt:
             apt.payment_status = "Paid"
@@ -129,7 +167,11 @@ def manage_appointments() -> None:
         else:
             show_message("Appointment not found!", wait_time=2)
     elif choice == "4":
-        appointment_id = int(input("Enter appointment ID: "))
+        try:
+            appointment_id = int(input("Enter appointment ID: "))
+        except ValueError:
+            show_message("Invalid ID! Enter a number.", wait_time=2)
+            return
         apt = find_appointment_by_id(appointment_id)
         if apt:
             apt.status = "Completed"
@@ -169,7 +211,11 @@ def manage_washers() -> None:
         show_message(f"Washer added! ID: {washer_id}", wait_time=2)
     elif choice == "3":
         clear_screen()
-        washer_id = int(input("Enter washer ID to delete: "))
+        try:
+            washer_id = int(input("Enter washer ID to delete: "))
+        except ValueError:
+            show_message("Invalid ID! Enter a number.", wait_time=2)
+            return
         washer: Washer | None = find_washer_by_id(washer_id)
         if washer:
             washers.remove(washer)
@@ -194,13 +240,22 @@ def assign_tasks() -> None:
         return
 
     for apt in available_apts:
+        items = (
+            f"{apt.item_count} {apt.item_types}"
+            if apt.item_types
+            else f"{apt.item_count} pcs"
+        )
         print(
             f"ID: {apt.appointment_id}, Customer: {apt.customer_id}, "
-            f"Service: {apt.service_type} ({apt.item_count} pcs - {apt.item_types}), "
+            f"Service: {apt.service_type}, Items: {items}, "
             f"Date: {apt.date}, Payment: {apt.payment_method} ({apt.payment_status})"
         )
 
-    appointment_id: int = int(input("\nEnter appointment ID: "))
+    try:
+        appointment_id: int = int(input("\nEnter appointment ID: "))
+    except ValueError:
+        show_message("Invalid ID! Enter a number.", wait_time=2)
+        return
     apt: Appointment | None = find_appointment_by_id(appointment_id)
 
     if not apt:
@@ -211,7 +266,8 @@ def assign_tasks() -> None:
         show_message("This appointment already has a task!", wait_time=2)
         return
 
-    description: str = input("Enter task description (e.g., Wash, Dry, Iron): ")
+    description: str = apt.service_type
+    print(f"Task Description: {description}")
     task_id: int = get_next_task_id()
     new_task: Task = Task(task_id, appointment_id, description)
     tasks.append(new_task)
@@ -225,7 +281,11 @@ def assign_tasks() -> None:
     for washer in washers:
         print(f"ID: {washer.washer_id}, Name: {washer.name}")
 
-    washer_id: int = int(input("\nEnter washer ID to assign task: "))
+    try:
+        washer_id: int = int(input("\nEnter washer ID to assign task: "))
+    except ValueError:
+        show_message("Invalid ID! Enter a number.", wait_time=2)
+        return
     washer = find_washer_by_id(washer_id)
 
     if washer:
@@ -279,7 +339,11 @@ def view_reports() -> None:
         pause()
 
     elif choice == "4":
-        customer_id: int = int(input("Enter customer ID: "))
+        try:
+            customer_id: int = int(input("Enter customer ID: "))
+        except ValueError:
+            show_message("Invalid ID! Enter a number.", wait_time=2)
+            return
         customer: Customer | None = find_customer_by_id(customer_id)
 
         if not customer:
@@ -305,13 +369,18 @@ def view_reports() -> None:
         for apt in customer_apts:
             base_price = SERVICE_PRICES.get(apt.service_type, 15)
             cost = base_price * max(apt.item_count, 1)
+            items = (
+                f"{apt.item_count} {apt.item_types}"
+                if apt.item_types
+                else f"{apt.item_count} pcs"
+            )
             print(
                 f"  - Appointment {apt.appointment_id}: {apt.date} {apt.time} "
-                f"Service: {apt.service_type} ({apt.item_count} pcs - {apt.item_types}) "
-                f"Status: {apt.status} - Payment: {apt.payment_method} ({apt.payment_status}) "
-                f"Cost: ${cost}"
+                f"Service: {apt.service_type}, Items: {items}, "
+                f"Status: {apt.status}, Payment: {apt.payment_method} ({apt.payment_status}), "
+                f"Cost: {cost} SR"
             )
             total_cost += cost
 
-        print(f"\nTotal Amount Due: ${total_cost}")
+        print(f"\nTotal Amount Due: {total_cost} SR")
         pause()

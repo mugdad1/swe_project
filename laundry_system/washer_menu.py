@@ -14,7 +14,11 @@ from data import washers
 def washer_login() -> None:
     clear_screen()
     print("\n=== Washer Login ===")
-    washer_id: int = int(input("Enter your washer ID: "))
+    try:
+        washer_id: int = int(input("Enter your washer ID: "))
+    except ValueError:
+        show_message("Invalid ID! Enter a number.", wait_time=2)
+        return
 
     washer: Washer | None = find_washer_by_id(washer_id)
 
@@ -76,7 +80,11 @@ def update_task_status(washer: Washer) -> None:
         show_message("You have no tasks!", wait_time=2)
         return
 
-    task_id: int = int(input("Enter task ID: "))
+    try:
+        task_id: int = int(input("Enter task ID: "))
+    except ValueError:
+        show_message("Invalid task ID! Enter a number.", wait_time=2)
+        return
 
     task: Task | None = find_task_by_id(task_id)
 
@@ -112,7 +120,11 @@ def add_task_notes(washer: Washer) -> None:
         show_message("You have no tasks!", wait_time=2)
         return
 
-    task_id: int = int(input("Enter task ID: "))
+    try:
+        task_id: int = int(input("Enter task ID: "))
+    except ValueError:
+        show_message("Invalid task ID! Enter a number.", wait_time=2)
+        return
 
     task: Task | None = find_task_by_id(task_id)
 
