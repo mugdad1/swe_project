@@ -70,6 +70,12 @@ def view_tasks(washer: Washer) -> None:
 def update_task_status(washer: Washer) -> None:
     clear_screen()
     print("\n=== Update Task Status ===")
+
+    tasks = get_washer_tasks(washer.washer_id)
+    if not tasks:
+        show_message("You have no tasks!", wait_time=2)
+        return
+
     task_id: int = int(input("Enter task ID: "))
 
     task: Task | None = find_task_by_id(task_id)
@@ -100,6 +106,12 @@ def update_task_status(washer: Washer) -> None:
 def add_task_notes(washer: Washer) -> None:
     clear_screen()
     print("\n=== Add Notes to Task ===")
+
+    tasks = get_washer_tasks(washer.washer_id)
+    if not tasks:
+        show_message("You have no tasks!", wait_time=2)
+        return
+
     task_id: int = int(input("Enter task ID: "))
 
     task: Task | None = find_task_by_id(task_id)

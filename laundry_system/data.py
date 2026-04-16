@@ -49,3 +49,21 @@ FAKE_PAYMENT_DETAILS = {
     "iban_holder": "Laundry Express Co.",
     "stc_pay": "+966 50 123 4567",
 }
+
+SERVICE_TYPES = {
+    "1": "Wash",
+    "2": "Dry Clean",
+    "3": "Iron",
+    "4": "Wash & Iron",
+    "5": "Express Service",
+    "6": "Other",
+}
+
+SERVICE_PRICES = {
+    "Wash": 10,
+    "Dry Clean": 25,
+    "Iron": 8,
+    "Wash & Iron": 15,
+    "Express Service": 20,
+    "Other": 15,
+}

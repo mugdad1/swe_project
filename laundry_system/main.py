@@ -21,15 +21,19 @@ def main_menu() -> None:
 
         if choice == "1":
             customer_signup()
+            print("\nReturning to main menu...")
             input("\nPress Enter to continue...")
         elif choice == "2":
             customer_login()
+            print("\nReturning to main menu...")
             input("\nPress Enter to continue...")
         elif choice == "3":
             washer_login()
+            print("\nReturning to main menu...")
             input("\nPress Enter to continue...")
         elif choice == "4":
             admin_login()
+            print("\nReturning to main menu...")
             input("\nPress Enter to continue...")
         elif choice == "5":
             print("\nThank you for using Laundry Service Management System!")

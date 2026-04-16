@@ -24,6 +24,9 @@ class Appointment:
         status: str = "Pending",
         payment_method: str = "Cash",
         payment_status: str = "Pending",
+        service_type: str = "Wash",
+        item_count: int = 0,
+        item_types: str = "",
     ) -> None:
         self.appointment_id: int = appointment_id
         self.customer_id: int = customer_id
@@ -33,9 +36,12 @@ class Appointment:
         self.task_id: Optional[int] = None
         self.payment_method: str = payment_method
         self.payment_status: str = payment_status
+        self.service_type: str = service_type
+        self.item_count: int = item_count
+        self.item_types: str = item_types
 
     def __str__(self) -> str:
-        return f"ID: {self.appointment_id}, Customer: {self.customer_id}, Date: {self.date}, Time: {self.time}, Status: {self.status}, Payment: {self.payment_method} ({self.payment_status})"
+        return f"ID: {self.appointment_id}, Customer: {self.customer_id}, Date: {self.date}, Time: {self.time}, Status: {self.status}, Service: {self.service_type} ({self.item_count} pcs), Payment: {self.payment_method} ({self.payment_status})"
 
 
 class Task:
