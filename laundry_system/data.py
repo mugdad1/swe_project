@@ -2,13 +2,13 @@
 customers = []
 appointments = []
 tasks = []
-washers = []
+staff = []
 
 # ID counters
 customer_id_counter = 1
 appointment_id_counter = 1
 task_id_counter = 1
-washer_id_counter = 1
+staff_id_counter = 1
 
 
 # Function to get next ID
@@ -30,10 +30,10 @@ def get_next_task_id():
     return task_id_counter - 1
 
 
-def get_next_washer_id():
-    global washer_id_counter
-    washer_id_counter += 1
-    return washer_id_counter - 1
+def get_next_staff_id():
+    global staff_id_counter
+    staff_id_counter += 1
+    return staff_id_counter - 1
 
 
 PAYMENT_METHODS = {

@@ -67,11 +67,11 @@ class Task:
         return f"ID: {self.task_id}, Appointment: {self.appointment_id}, Description: {self.description}, Status: {self.status}"
 
 
-class Washer:
-    def __init__(self, washer_id: int, name: str) -> None:
-        self.washer_id: int = washer_id
+class Staff:
+    def __init__(self, staff_id: int, name: str) -> None:
+        self.staff_id: int = staff_id
         self.name: str = name
         self.assigned_tasks: list[int] = []
 
     def __str__(self) -> str:
-        return f"ID: {self.washer_id}, Name: {self.name}"
+        return f"ID: {self.staff_id}, Name: {self.name}"

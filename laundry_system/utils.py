@@ -5,7 +5,7 @@ import re
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from classes import Customer, Appointment, Task, Washer
+    from classes import Customer, Appointment, Task, Staff
 
 
 def find_customer_by_email(email: str) -> Customer | None:
@@ -48,13 +48,13 @@ def find_task_by_id(task_id: int) -> Task | None:
     return None
 
 
-def find_washer_by_id(washer_id: int) -> Washer | None:
-    """Find a washer by ID"""
-    from data import washers
+def find_staff_by_id(staff_id: int) -> Staff | None:
+    """Find a staff by ID"""
+    from data import staff
 
-    for washer in washers:
-        if washer.washer_id == washer_id:
-            return washer
+    for staff_member in staff:
+        if staff_member.staff_id == staff_id:
+            return staff_member
     return None
 
 
@@ -65,13 +65,13 @@ def get_customer_appointments(customer_id: int) -> list[Appointment]:
     return [apt for apt in appointments if apt.customer_id == customer_id]
 
 
-def get_washer_tasks(washer_id: int) -> list[Task]:
-    """Get all tasks assigned to a washer"""
-    from data import washers
+def get_staff_tasks(staff_id: int) -> list[Task]:
+    """Get all tasks assigned to a staff"""
+    from data import staff
 
-    washer = find_washer_by_id(washer_id)
-    if washer:
-        tasks = [find_task_by_id(task_id) for task_id in washer.assigned_tasks]
+    staff_member = find_staff_by_id(staff_id)
+    if staff_member:
+        tasks = [find_task_by_id(task_id) for task_id in staff_member.assigned_tasks]
         return [t for t in tasks if t is not None]
     return []
 

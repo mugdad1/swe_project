@@ -1,7 +1,7 @@
 from __future__ import annotations
 import os
 import sys
-from classes import Customer, Washer, Task, Appointment
+from classes import Customer, Staff, Task, Appointment
 
 
 def get_password(prompt: str = "Enter your password: ") -> str:
@@ -30,15 +30,15 @@ from data import (
     customers,
     appointments,
     tasks,
-    washers,
-    get_next_washer_id,
+    staff,
+    get_next_staff_id,
     get_next_task_id,
     SERVICE_PRICES,
 )
 from utils import (
     find_customer_by_id,
     find_appointment_by_id,
-    find_washer_by_id,
+    find_staff_by_id,
     clear_screen,
     pause,
     show_message,
@@ -64,7 +64,7 @@ def admin_dashboard() -> None:
         print("\n=== Admin Dashboard ===")
         print("1. Manage Customers")
         print("2. Manage Appointments")
-        print("3. Manage Washers")
+        print("3. Manage Staff")
         print("4. Assign Tasks")
         print("5. View Reports")
         print("6. Logout")
@@ -76,7 +76,7 @@ def admin_dashboard() -> None:
         elif choice == "2":
             manage_appointments()
         elif choice == "3":
-            manage_washers()
+            manage_staff()
         elif choice == "4":
             assign_tasks()
         elif choice == "5":
@@ -184,44 +184,44 @@ def manage_appointments() -> None:
         show_message("Invalid choice!", wait_time=1)
 
 
-def manage_washers() -> None:
+def manage_staff() -> None:
     clear_screen()
-    print("\n=== Manage Washers ===")
-    print("1. View All Washers")
-    print("2. Add New Washer")
-    print("3. Delete Washer")
+    print("\n=== Manage Staff ===")
+    print("1. View All Staff")
+    print("2. Add New Staff")
+    print("3. Delete Staff")
 
     choice: str = input("\nEnter your choice: ")
 
     if choice == "1":
         clear_screen()
-        if not washers:
-            show_message("No washers found.", wait_time=2)
+        if not staff:
+            show_message("No staff found.", wait_time=2)
             return
-        print("\n=== All Washers ===")
-        for washer in washers:
-            print(washer)
+        print("\n=== All Staff ===")
+        for staff_member in staff:
+            print(staff_member)
         pause()
     elif choice == "2":
         clear_screen()
-        name: str = input("Enter washer name: ")
-        washer_id: int = get_next_washer_id()
-        new_washer: Washer = Washer(washer_id, name)
-        washers.append(new_washer)
-        show_message(f"Washer added! ID: {washer_id}", wait_time=2)
+        name: str = input("Enter staff name: ")
+        staff_id: int = get_next_staff_id()
+        new_staff: Staff = Staff(staff_id, name)
+        staff.append(new_staff)
+        show_message(f"Staff added! ID: {staff_id}", wait_time=2)
     elif choice == "3":
         clear_screen()
         try:
-            washer_id = int(input("Enter washer ID to delete: "))
+            staff_id = int(input("Enter staff ID to delete: "))
         except ValueError:
             show_message("Invalid ID! Enter a number.", wait_time=2)
             return
-        washer: Washer | None = find_washer_by_id(washer_id)
-        if washer:
-            washers.remove(washer)
-            show_message("Washer deleted!", wait_time=2)
+        staff_member: Staff | None = find_staff_by_id(staff_id)
+        if staff_member:
+            staff.remove(staff_member)
+            show_message("Staff deleted!", wait_time=2)
         else:
-            show_message("Washer not found!", wait_time=2)
+            show_message("Staff not found!", wait_time=2)
     else:
         show_message("Invalid choice!", wait_time=1)
 
@@ -273,27 +273,27 @@ def assign_tasks() -> None:
     tasks.append(new_task)
     apt.task_id = task_id
 
-    print("\nAvailable washers:")
-    if not washers:
-        show_message("No washers available!", wait_time=2)
+    print("\nAvailable staff:")
+    if not staff:
+        show_message("No staff available!", wait_time=2)
         return
 
-    for washer in washers:
-        print(f"ID: {washer.washer_id}, Name: {washer.name}")
+    for staff_member in staff:
+        print(f"ID: {staff_member.staff_id}, Name: {staff_member.name}")
 
     try:
-        washer_id: int = int(input("\nEnter washer ID to assign task: "))
+        staff_id: int = int(input("\nEnter staff ID to assign task: "))
     except ValueError:
         show_message("Invalid ID! Enter a number.", wait_time=2)
         return
-    washer = find_washer_by_id(washer_id)
+    staff_member = find_staff_by_id(staff_id)
 
-    if washer:
-        washer.assigned_tasks.append(task_id)
+    if staff_member:
+        staff_member.assigned_tasks.append(task_id)
         apt.status = "In Progress"
-        print(f"Task {task_id} assigned to {washer.name}!")
+        print(f"Task {task_id} assigned to {staff_member.name}!")
     else:
-        print("Washer not found!")
+        print("Staff not found!")
 
 
 def view_reports() -> None:

@@ -1,6 +1,6 @@
 import sys
 from customer_menu import customer_signup, customer_login
-from washer_menu import washer_login
+from staff_menu import staff_login
 from admin_menu import admin_login
 from utils import clear_screen
 
@@ -13,7 +13,7 @@ def main_menu() -> None:
         print("=" * 50)
         print("\n1. Customer Sign Up")
         print("2. Customer Login")
-        print("3. Washer Login")
+        print("3. Staff Login")
         print("4. Admin Login")
         print("5. Exit")
 
@@ -28,7 +28,7 @@ def main_menu() -> None:
             print("\nReturning to main menu...")
             input("\nPress Enter to continue...")
         elif choice == "3":
-            washer_login()
+            staff_login()
             print("\nReturning to main menu...")
             input("\nPress Enter to continue...")
         elif choice == "4":

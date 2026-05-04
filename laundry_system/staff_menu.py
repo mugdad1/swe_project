@@ -1,39 +1,39 @@
 from __future__ import annotations
-from classes import Washer, Task
+from classes import Staff, Task
 from utils import (
-    find_washer_by_id,
-    get_washer_tasks,
+    find_staff_by_id,
+    get_staff_tasks,
     find_task_by_id,
     clear_screen,
     pause,
     show_message,
 )
-from data import washers
+from data import staff
 
 
-def washer_login() -> None:
+def staff_login() -> None:
     clear_screen()
-    print("\n=== Washer Login ===")
+    print("\n=== Staff Login ===")
     try:
-        washer_id: int = int(input("Enter your washer ID: "))
+        staff_id: int = int(input("Enter your staff ID: "))
     except ValueError:
         show_message("Invalid ID! Enter a number.", wait_time=2)
         return
 
-    washer: Washer | None = find_washer_by_id(washer_id)
+    staff_member: Staff | None = find_staff_by_id(staff_id)
 
-    if washer:
-        print(f"Welcome, {washer.name}!")
+    if staff_member:
+        print(f"Welcome, {staff_member.name}!")
         pause()
-        washer_dashboard(washer)
+        staff_dashboard(staff_member)
     else:
-        show_message("Washer ID not found!", wait_time=2)
+        show_message("Staff ID not found!", wait_time=2)
 
 
-def washer_dashboard(washer: Washer) -> None:
+def staff_dashboard(staff_member: Staff) -> None:
     while True:
         clear_screen()
-        print(f"\n=== Washer Dashboard ({washer.name}) ===")
+        print(f"\n=== Staff Dashboard ({staff_member.name}) ===")
         print("1. View My Tasks")
         print("2. Update Task Status")
         print("3. Add Notes to Task")
@@ -42,11 +42,11 @@ def washer_dashboard(washer: Washer) -> None:
         choice: str = input("\nEnter your choice: ")
 
         if choice == "1":
-            view_tasks(washer)
+            view_tasks(staff_member)
         elif choice == "2":
-            update_task_status(washer)
+            update_task_status(staff_member)
         elif choice == "3":
-            add_task_notes(washer)
+            add_task_notes(staff_member)
         elif choice == "4":
             print("Logging out...")
             pause()
@@ -55,10 +55,10 @@ def washer_dashboard(washer: Washer) -> None:
             show_message("Invalid choice!", wait_time=1)
 
 
-def view_tasks(washer: Washer) -> None:
+def view_tasks(staff_member: Staff) -> None:
     clear_screen()
     print("\n=== Your Tasks ===")
-    tasks: list[Task | None] = get_washer_tasks(washer.washer_id)
+    tasks: list[Task | None] = get_staff_tasks(staff_member.staff_id)
 
     if not tasks:
         show_message("You have no tasks assigned.", wait_time=2)
@@ -71,11 +71,11 @@ def view_tasks(washer: Washer) -> None:
     pause()
 
 
-def update_task_status(washer: Washer) -> None:
+def update_task_status(staff_member: Staff) -> None:
     clear_screen()
     print("\n=== Update Task Status ===")
 
-    tasks = get_washer_tasks(washer.washer_id)
+    tasks = get_staff_tasks(staff_member.staff_id)
     if not tasks:
         show_message("You have no tasks!", wait_time=2)
         return
@@ -88,7 +88,7 @@ def update_task_status(washer: Washer) -> None:
 
     task: Task | None = find_task_by_id(task_id)
 
-    if task and task_id in washer.assigned_tasks:
+    if task and task_id in staff_member.assigned_tasks:
         print("\nSelect new status:")
         print("1. Not Started")
         print("2. In Progress")
@@ -111,11 +111,11 @@ def update_task_status(washer: Washer) -> None:
         show_message("Task not found or not assigned to you!", wait_time=2)
 
 
-def add_task_notes(washer: Washer) -> None:
+def add_task_notes(staff_member: Staff) -> None:
     clear_screen()
     print("\n=== Add Notes to Task ===")
 
-    tasks = get_washer_tasks(washer.washer_id)
+    tasks = get_staff_tasks(staff_member.staff_id)
     if not tasks:
         show_message("You have no tasks!", wait_time=2)
         return
@@ -128,7 +128,7 @@ def add_task_notes(washer: Washer) -> None:
 
     task: Task | None = find_task_by_id(task_id)
 
-    if task and task_id in washer.assigned_tasks:
+    if task and task_id in staff_member.assigned_tasks:
         notes: str = input("Enter notes: ")
         task.notes = notes
         show_message("Notes added successfully!", wait_time=2)
