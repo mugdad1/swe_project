@@ -55,7 +55,7 @@
 | View payment method | ✅ PASS |
 | View payment status | ✅ PASS |
 
-### FR6: Washer Login
+### FR6: Staff Login
 
 | Test | Result |
 |------|--------|
@@ -103,20 +103,20 @@
 | Mark as Paid | ✅ PASS |
 | Mark as Completed | ✅ PASS |
 
-### FR13: Manage Washers
+### FR13: Manage Staff
 
 | Test | Result |
 |------|--------|
-| View washers | ✅ PASS |
-| Add washer | ✅ PASS |
-| Delete washer | ✅ PASS |
+| View staff | ✅ PASS |
+| Add staff | ✅ PASS |
+| Delete staff | ✅ PASS |
 
 ### FR14: Assign Work
 
 | Test | Result |
 |------|--------|
 | Create task | ✅ PASS |
-| Assign to washer | ✅ PASS |
+| Assign to staff | ✅ PASS |
 | Link task to appointment | ✅ PASS |
 
 ### FR15: Reports and Invoices
