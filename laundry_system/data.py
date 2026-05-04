@@ -37,10 +37,9 @@ def get_next_staff_id():
 
 
 PAYMENT_METHODS = {
-    "1": "Cash",
-    "2": "Credit Card",
-    "3": "IBAN Transfer",
-    "4": "STC Pay",
+    "1": "Credit Card",
+    "2": "IBAN Transfer",
+    "3": "STC Pay",
 }
 
 FAKE_PAYMENT_DETAILS = {

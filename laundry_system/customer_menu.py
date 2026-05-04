@@ -163,7 +163,7 @@ def book_service(customer: Customer) -> None:
     print(f"\nTotal Price: {total_price} SR ({item_count} x {base_price} SR)")
 
     print("\n=== Choose Payment Method ===")
-    print("1. Cash (on delivery)")
+    print("1. Credit Card")
     print("2. Credit Card")
     print("3. IBAN Transfer")
     print("4. STC Pay")
@@ -171,7 +171,7 @@ def book_service(customer: Customer) -> None:
     payment_choice: str = input("\nEnter your choice (1-4): ")
 
     if payment_choice not in ["1", "2", "3", "4"]:
-        show_message("Invalid choice! Defaulting to Cash.", wait_time=2)
+        show_message("Invalid choice! Defaulting to Credit Card.", wait_time=2)
         payment_choice = "1"
 
     payment_method: str = PAYMENT_METHODS[payment_choice]

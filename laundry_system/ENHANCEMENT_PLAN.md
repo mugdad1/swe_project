@@ -64,7 +64,7 @@ def __init__(
     date: str,
     time: str,
     status: str = "Pending",
-    payment_method: str = "Cash",
+    payment_method: str = "Credit Card",
     payment_status: str = "Pending",
     service_type: str = "Wash",
     item_count: int = 0,
@@ -116,7 +116,7 @@ Enter item types (e.g., T-shirts, Pants, Dresses):
 [free text input - e.g., "3 T-shirts, 2 jeans, 1 jacket"]
 
 === Choose Payment Method ===
-1. Cash (on delivery)
+1. Credit Card
 2. Credit Card
 3. IBAN Transfer
 4. STC Pay

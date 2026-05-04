@@ -8,7 +8,7 @@
 **Scenario:**
 1. Register: name "John", email "john@test.com", password "pass123"
 2. Login: email + password
-3. Book: date "2026-05-01", time "10:00", service "Wash & Iron", 5 items, payment "Cash"
+3. Book: date "2026-05-01", time "10:00", service "Wash & Iron", 5 items, payment "Credit Card"
 4. Track: View appointments
 
 **The system shall:**

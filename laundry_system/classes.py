@@ -22,7 +22,7 @@ class Appointment:
         date: str,
         time: str,
         status: str = "Pending",
-        payment_method: str = "Cash",
+        payment_method: str = "Credit Card",
         payment_status: str = "Pending",
         service_type: str = "Wash",
         item_count: int = 0,
