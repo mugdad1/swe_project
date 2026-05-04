@@ -18,16 +18,16 @@
 
 ---
 
-## TC-02: Washer View Tasks & Update Status  
-**Objective:** Verify washer can view assigned tasks and update status with notes. (FR-7, FR-8, FR-9)
+## TC-02: Staff View Tasks & Update Status  
+**Objective:** Verify staff can view assigned tasks and update status with notes. (FR-7, FR-8, FR-9)
 
 **Preconditions:**
-- Washer A must have at least 1 task assigned
-- Washer B must have a different task assigned
-- Washer A is logged in
+- Staff A must have at least 1 task assigned
+- Staff B must have a different task assigned
+- Staff A is logged in
 
 **Scenario:**
-1. Login: Washer A
+1. Login: Staff A
 2. View tasks - only shows A's task, NOT B's
 3. Update status to "Done"
 4. Add note "Completed"
@@ -40,39 +40,39 @@
 ---
 
 ## TC-03: Admin Manage, Assign & Reports
-**Objective:** Verify admin can manage customers/washers, assign work, view reports. (FR-11, FR-13, FR-14, FR-15)
+**Objective:** Verify admin can manage customers/staff, assign work, view reports. (FR-11, FR-13, FR-14, FR-15)
 
 **Preconditions:**
 - At least 1 customer must exist
-- At least 1 washer must exist
+- At least 1 staff must exist
 - Admin must be logged in
 
 **Scenario:**
 1. View customers, delete one
-2. Add washer
-3. Assign task to washer
+2. Add staff
+3. Assign task to staff
 4. View reports
 
 **The system shall:**
 - Delete selected customer
-- Create washer with unique ID
-- Link task to washer
+- Create staff with unique ID
+- Link task to staff
 - Display accurate report statistics
 
 ---
 
 ## TC-04: End to End Lifecycle
-**Objective:** Full workflow: customer book → admin assign → washer complete → customer view. (All FRs)
+**Objective:** Full workflow: customer book → admin assign → staff complete → customer view. (All FRs)
 
 **Scenario:**
 1. Customer: register → book (Pending)
 2. Admin: assign task (In Progress)
-3. Washer: view → update status (Done) → add note
+3. Staff: view → update status (Done) → add note
 4. Customer: view final status
 
 **The system shall:**
 - Display "Done" status to customer
-- Show washer note "Completed"
+- Show staff note "Completed"
 
 ---
 
